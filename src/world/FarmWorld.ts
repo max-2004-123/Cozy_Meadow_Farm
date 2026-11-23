@@ -137,14 +137,14 @@ export class FarmWorld {
     ground.receiveShadow = true;
     this.group.add(ground);
 
-    // Subtle soft pastel grassy knoll under the windmill
-    const knollGeo = new THREE.CylinderGeometry(8.5, 14.5, 2.2, 16);
+    // Subtle soft pastel grassy knoll under the windmill (compact & clear of the Red Barn!)
+    const knollGeo = new THREE.CylinderGeometry(4.8, 7.5, 1.1, 20);
     const knollMat = new THREE.MeshStandardMaterial({
       color: '#91cb6c',
       roughness: 0.95,
     });
     const knoll = new THREE.Mesh(knollGeo, knollMat);
-    knoll.position.set(15.5, 0.8, -21.0);
+    knoll.position.set(15.5, 0.45, -21.0);
     knoll.receiveShadow = true;
     this.group.add(knoll);
   }
@@ -428,11 +428,16 @@ export class FarmWorld {
     rightRoof.receiveShadow = true;
     house.add(rightRoof);
 
-    // Roof ridge beam + charming front pitched dormer window!
+    // Roof ridge beam + carved storybook apex finial + charming front pitched dormer window!
     const ridge = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 8.3, 8), woodMat);
     ridge.rotation.x = Math.PI / 2;
     ridge.position.set(0, 8.26, 0);
     house.add(ridge);
+    for (const fz of [-4.12, 4.12]) {
+      const finial = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.56, 7), woodMat);
+      finial.position.set(0, 8.58, fz);
+      house.add(finial);
+    }
 
     // Cute Storybook Roof Dormer facing +X toward the garden!
     const dormer = new THREE.Group();
@@ -481,12 +486,17 @@ export class FarmWorld {
     porchRoof.castShadow = true;
     house.add(porchRoof);
 
-    // Porch columns, rails & turned baluster spindles!
+    // Porch columns, angled timber knee-braces, rails & turned baluster spindles!
     for (const pz of [-2.95, -1.25, 1.25, 2.95]) {
       const col = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.13, 2.9, 8), woodMat);
       col.position.set(6.15, 2.05, pz);
       col.castShadow = true;
       house.add(col);
+      // Angled carpentry knee-brace supporting the porch eaves
+      const brace = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.62, 0.1), woodMat);
+      brace.position.set(5.92, 3.12, pz);
+      brace.rotation.z = -0.78;
+      house.add(brace);
     }
     for (const segZ of [-2.1, 2.1]) {
       const rail = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.12, 1.75), woodLightMat);
@@ -533,10 +543,51 @@ export class FarmWorld {
       this.addMiniatureFlowers(house, 6.1, 2.74, hz, 4);
     }
 
-    // Arched cozy wooden front door on +X face
+    // Arched paneled wooden front door with glowing peep-window, iron strap hinges & floral wreath!
     const door = new THREE.Mesh(new THREE.BoxGeometry(0.18, 2.35, 1.3), woodMat);
     door.position.set(4.24, 1.92, 0);
     house.add(door);
+    const doorFrame = new THREE.Mesh(new THREE.BoxGeometry(0.22, 2.48, 1.46), woodLightMat);
+    doorFrame.position.set(4.21, 1.96, 0);
+    house.add(doorFrame);
+    const doorWindow = new THREE.Mesh(new THREE.CircleGeometry(0.22, 14), windowGlowMat);
+    doorWindow.rotation.y = Math.PI / 2;
+    doorWindow.position.set(4.345, 2.45, 0);
+    house.add(doorWindow);
+    const doorWinRing = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.035, 7, 16), woodLightMat);
+    doorWinRing.rotation.y = Math.PI / 2;
+    doorWinRing.position.set(4.35, 2.45, 0);
+    house.add(doorWinRing);
+    const doorWinMullV = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.44, 0.032), woodLightMat);
+    doorWinMullV.position.set(4.355, 2.45, 0);
+    house.add(doorWinMullV);
+    const doorWinMullH = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.032, 0.44), woodLightMat);
+    doorWinMullH.position.set(4.355, 2.45, 0);
+    house.add(doorWinMullH);
+    // Wrought-iron strap hinges
+    const doorIronMat = new THREE.MeshStandardMaterial({ color: '#47403b', metalness: 0.45, roughness: 0.5 });
+    for (const hy of [1.28, 2.52]) {
+      const hinge = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.09, 0.42), doorIronMat);
+      hinge.position.set(4.34, hy, -0.4);
+      house.add(hinge);
+    }
+    // Cozy pastel wreath on the front door!
+    const wreath = new THREE.Mesh(
+      new THREE.TorusGeometry(0.24, 0.06, 7, 14),
+      new THREE.MeshStandardMaterial({ color: '#5fa652', roughness: 0.8 })
+    );
+    wreath.rotation.y = Math.PI / 2;
+    wreath.position.set(4.36, 1.92, 0);
+    house.add(wreath);
+    for (let b = 0; b < 5; b++) {
+      const a = (b / 5) * Math.PI * 2;
+      const berry = new THREE.Mesh(
+        new THREE.SphereGeometry(0.045, 6, 5),
+        new THREE.MeshStandardMaterial({ color: b % 2 === 0 ? '#ff8fb3' : '#ffe066', roughness: 0.5 })
+      );
+      berry.position.set(4.4, 1.92 + Math.sin(a) * 0.24, Math.cos(a) * 0.24);
+      house.add(berry);
+    }
     const knob = new THREE.Mesh(
       new THREE.SphereGeometry(0.08, 8, 8),
       new THREE.MeshStandardMaterial({ color: '#f2c96b', metalness: 0.4, roughness: 0.3 })
@@ -600,16 +651,25 @@ export class FarmWorld {
       house.add(clayPot);
     }
 
-    // Warm porch lantern light + soft glowing halo sprite
-    const porchLampGlass = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), windowGlowMat);
-    porchLampGlass.position.set(5.45, 2.95, 0);
+    // Hanging wrought-iron porch lantern + warm glow halo sprite
+    const porchLampChain = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.34, 6), doorIronMat);
+    porchLampChain.position.set(5.45, 3.42, 0);
+    house.add(porchLampChain);
+    const porchLampCap = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.14, 6), doorIronMat);
+    porchLampCap.position.set(5.45, 3.24, 0);
+    house.add(porchLampCap);
+    const porchLampGlass = new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.085, 0.22, 6), windowGlowMat);
+    porchLampGlass.position.set(5.45, 3.09, 0);
     house.add(porchLampGlass);
+    const porchLampTray = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.06, 0.05, 6), doorIronMat);
+    porchLampTray.position.set(5.45, 2.96, 0);
+    house.add(porchLampTray);
     const porchHalo = this.sky.createLanternHaloSprite(2.2);
-    porchHalo.position.set(5.45, 2.95, 0);
+    porchHalo.position.set(5.45, 3.09, 0);
     house.add(porchHalo);
 
     const porchLight = new THREE.PointLight('#ffcf86', 0, 15, 1.5);
-    porchLight.position.set(5.45, 2.8, 0);
+    porchLight.position.set(5.45, 2.9, 0);
     house.add(porchLight);
     this.sky.registerNightLight(porchLight);
 
@@ -757,19 +817,40 @@ export class FarmWorld {
       }
     }
 
-    // Open hayloft window + protruding hay + pulley beam
+    // Open hayloft window + swung-open timber shutters + protruding hay + pulley wheel & rope!
     const loftWindow = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.5, 0.2), loftGlow);
     loftWindow.position.set(0, 5.8, 3.72);
     barn.add(loftWindow);
     const loftBorder = new THREE.Mesh(new THREE.BoxGeometry(1.94, 0.18, 0.26), creamMat);
     loftBorder.position.set(0, 5.02, 3.76);
     barn.add(loftBorder);
+    for (const side of [-1, 1]) {
+      const shutter = new THREE.Mesh(new THREE.BoxGeometry(0.82, 1.48, 0.1), redMat);
+      shutter.position.set(side * 1.24, 5.8, 3.92);
+      shutter.rotation.y = -side * 0.45;
+      shutter.castShadow = true;
+      barn.add(shutter);
+    }
     const loftHay = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.62, 0.8), hayMat);
     loftHay.position.set(0, 5.38, 3.85);
     barn.add(loftHay);
-    const hoistBeam = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.24, 1.6), creamMat);
-    hoistBeam.position.set(0, 7.9, 4.3);
+    const hoistBeam = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.24, 1.75), creamMat);
+    hoistBeam.position.set(0, 7.9, 4.35);
     barn.add(hoistBeam);
+    // Hanging pulley wheel & hemp rope beneath the hayloft hoist beam!
+    const pulleyIron = new THREE.MeshStandardMaterial({ color: '#4d4743', metalness: 0.45, roughness: 0.5 });
+    const ropeMat = new THREE.MeshStandardMaterial({ color: '#d4b379', roughness: 0.92 });
+    const pulley = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.1, 10), pulleyIron);
+    pulley.rotation.z = Math.PI / 2;
+    pulley.position.set(0, 7.62, 4.95);
+    barn.add(pulley);
+    const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.65, 6), ropeMat);
+    rope.position.set(0, 6.75, 4.95);
+    barn.add(rope);
+    const hook = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.024, 6, 10, Math.PI * 1.35), pulleyIron);
+    hook.position.set(0, 5.86, 4.95);
+    hook.rotation.z = Math.PI * 0.7;
+    barn.add(hook);
 
     // Side glowing windows
     for (const sx of [-4.64, 4.64]) {
@@ -816,10 +897,15 @@ export class FarmWorld {
     cupola.add(this.barnWeathervane);
     barn.add(cupola);
 
-    // Rustic wooden ladder leaning beside barn doors + shiny creamery milk cans!
-    const ladderWood = new THREE.MeshStandardMaterial({ map: this.textures.woodWarm, roughness: 0.85 });
+    // Rustic wooden ladder leaning beside barn doors + shiny creamery milk cans + 10-spoke leaning wagon wheel!
+    const ladderWood = new THREE.MeshStandardMaterial({
+      map: this.textures.woodWarm,
+      bumpMap: this.textures.woodBump,
+      bumpScale: 0.035,
+      roughness: 0.85,
+    });
     const ladder = new THREE.Group();
-    ladder.position.set(-3.1, 0.3, 4.1);
+    ladder.position.set(-3.55, 0.3, 4.1);
     ladder.rotation.x = -0.22;
     for (const lx of [-0.26, 0.26]) {
       const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 4.2, 6), ladderWood);
@@ -836,7 +922,7 @@ export class FarmWorld {
     barn.add(ladder);
 
     const steelMat = new THREE.MeshStandardMaterial({ color: '#d7e2ea', metalness: 0.52, roughness: 0.28 });
-    for (const [mx, mz] of [[3.25, 4.15], [3.78, 4.35]] as [number, number][]) {
+    for (const [mx, mz] of [[-2.35, 4.12], [-2.76, 4.35]] as [number, number][]) {
       const canBody = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 0.55, 10), steelMat);
       canBody.position.set(mx, 0.55, mz);
       canBody.castShadow = true;
@@ -845,6 +931,31 @@ export class FarmWorld {
       canNeck.position.set(mx, 0.9, mz);
       barn.add(canNeck);
     }
+
+    // Classic 10-spoke wooden wagon wheel leaning crisply against the front-right red barn planks!
+    const wagonWheel = new THREE.Group();
+    wagonWheel.position.set(3.15, 0.78, 3.98);
+    wagonWheel.rotation.x = -0.18;
+    const wheelIron = new THREE.MeshStandardMaterial({ color: '#4f555c', metalness: 0.45, roughness: 0.5 });
+    const wRim = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.065, 8, 22), ladderWood);
+    wRim.castShadow = true;
+    wagonWheel.add(wRim);
+    const wTire = new THREE.Mesh(new THREE.TorusGeometry(0.77, 0.024, 6, 22), wheelIron);
+    wagonWheel.add(wTire);
+    const wHub = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.15, 0.24, 10), ladderWood);
+    wHub.rotation.x = Math.PI / 2;
+    wHub.castShadow = true;
+    wagonWheel.add(wHub);
+    const wHubBand = new THREE.Mesh(new THREE.TorusGeometry(0.145, 0.02, 6, 12), wheelIron);
+    wagonWheel.add(wHubBand);
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2;
+      const spoke = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.034, 1.38, 6), ladderWood);
+      spoke.rotation.z = a;
+      spoke.castShadow = true;
+      wagonWheel.add(spoke);
+    }
+    barn.add(wagonWheel);
 
     // Warm barn exterior night light + lantern lamp + glowing halo sprite!
     const barnLamp = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), loftGlow);
@@ -865,7 +976,7 @@ export class FarmWorld {
 
   private buildWindmill(): void {
     const mill = new THREE.Group();
-    mill.position.set(15.5, 1.8, -21.0);
+    mill.position.set(15.5, 0.94, -21.0);
     mill.rotation.y = -0.45;
 
     const stoneMat = new THREE.MeshStandardMaterial({
@@ -922,21 +1033,56 @@ export class FarmWorld {
     upperTower.receiveShadow = true;
     mill.add(upperTower);
 
-    // Wrap-around wooden gallery deck
-    const deck = new THREE.Mesh(new THREE.CylinderGeometry(3.25, 3.25, 0.25, 12), woodMat);
+    // Wrap-around wooden gallery deck with support corbels, X-braced rails & wrapping exterior stairs!
+    const deck = new THREE.Mesh(new THREE.CylinderGeometry(3.28, 3.28, 0.25, 14), woodMat);
     deck.position.y = 4.25;
     deck.castShadow = true;
     mill.add(deck);
-    const railRing = new THREE.Mesh(new THREE.TorusGeometry(3.15, 0.08, 6, 16), woodMat);
+    const railRing = new THREE.Mesh(new THREE.TorusGeometry(3.16, 0.08, 6, 18), woodMat);
     railRing.rotation.x = Math.PI / 2;
     railRing.position.y = 5.05;
     mill.add(railRing);
+    const midRailRing = new THREE.Mesh(new THREE.TorusGeometry(3.16, 0.055, 6, 18), woodMat);
+    midRailRing.rotation.x = Math.PI / 2;
+    midRailRing.position.y = 4.66;
+    mill.add(midRailRing);
     for (let i = 0; i < 12; i++) {
       const a = (i / 12) * Math.PI * 2;
-      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.85, 6), woodMat);
-      post.position.set(Math.cos(a) * 3.15, 4.65, Math.sin(a) * 3.15);
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.065, 0.88, 6), woodMat);
+      post.position.set(Math.cos(a) * 3.16, 4.66, Math.sin(a) * 3.16);
       mill.add(post);
+      // Angled timber corbel supporting the balcony from below
+      const corbel = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.82, 0.16), woodMat);
+      corbel.position.set(Math.cos(a) * 2.86, 3.84, Math.sin(a) * 2.86);
+      corbel.rotation.y = -a + Math.PI / 2;
+      corbel.rotation.x = 0.55;
+      mill.add(corbel);
     }
+
+    // Exterior wrapping wooden staircase climbing gracefully up the visible right flank to the gallery!
+    const stairRailPts: THREE.Vector3[] = [];
+    for (let st = 0; st < 11; st++) {
+      const t = st / 10;
+      const ang = 0.52 - t * 1.35;
+      const r = 3.72 - t * 0.30;
+      const sy = 0.32 + t * 3.88;
+      const step = new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.14, 0.44), woodMat);
+      step.position.set(Math.cos(ang) * r, sy, Math.sin(ang) * r);
+      step.rotation.y = -ang;
+      step.castShadow = true;
+      mill.add(step);
+      const outerR = r + 0.42;
+      stairRailPts.push(new THREE.Vector3(Math.cos(ang) * outerR, sy + 0.84, Math.sin(ang) * outerR));
+      if (st % 2 === 0) {
+        const sPost = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.048, 0.88, 6), woodMat);
+        sPost.position.set(Math.cos(ang) * outerR, sy + 0.42, Math.sin(ang) * outerR);
+        mill.add(sPost);
+      }
+    }
+    const stairRailCurve = new THREE.CatmullRomCurve3(stairRailPts);
+    const stairRail = new THREE.Mesh(new THREE.TubeGeometry(stairRailCurve, 18, 0.045, 6, false), woodMat);
+    stairRail.castShadow = true;
+    mill.add(stairRail);
 
     // Conical terracotta roof cap + shiny brass finial spire!
     const cap = new THREE.Mesh(new THREE.ConeGeometry(2.6, 3.1, 14), roofMat);
@@ -951,21 +1097,55 @@ export class FarmWorld {
     finialOrb.position.y = 13.85;
     mill.add(finialOrb);
 
-    // Door & glowing upper window
-    const door = new THREE.Mesh(new THREE.BoxGeometry(1.15, 2.05, 0.35), woodMat);
-    door.position.set(0, 1.05, 3.1);
+    // Projecting arched stone portal porch & recessed wooden door (sits cleanly proud of sloped stone base!)
+    const portalSurround = new THREE.Mesh(new THREE.BoxGeometry(1.78, 2.2, 1.05), stoneMat);
+    portalSurround.position.set(0, 1.1, 3.16);
+    portalSurround.castShadow = true;
+    portalSurround.receiveShadow = true;
+    mill.add(portalSurround);
+    const doorArch = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.18, 8, 16, Math.PI), stoneMat);
+    doorArch.scale.set(1, 1, 1.65);
+    doorArch.position.set(0, 2.02, 3.48);
+    mill.add(doorArch);
+    const door = new THREE.Mesh(new THREE.BoxGeometry(1.22, 2.06, 0.16), woodMat);
+    door.position.set(0, 1.04, 3.68);
     mill.add(door);
-    const win = new THREE.Mesh(new THREE.BoxGeometry(0.95, 1.05, 0.25), windowGlow);
-    win.position.set(0, 6.7, 2.4);
-    mill.add(win);
+    const doorIron = new THREE.MeshStandardMaterial({ color: '#47403b', metalness: 0.45, roughness: 0.5 });
+    for (const hy of [0.55, 1.55]) {
+      const hinge = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.09, 0.04), doorIron);
+      hinge.position.set(-0.36, hy, 3.77);
+      mill.add(hinge);
+    }
+    const doorRing = new THREE.Mesh(new THREE.TorusGeometry(0.085, 0.022, 6, 12), finialMat);
+    doorRing.position.set(0.36, 1.05, 3.78);
+    mill.add(doorRing);
+    const millStep = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.22, 0.78), stoneMat);
+    millStep.position.set(0, 0.11, 3.96);
+    millStep.receiveShadow = true;
+    mill.add(millStep);
 
-    // Rotating hub & 4 storybook cloth sails
+    const winFrame = new THREE.Mesh(new THREE.BoxGeometry(1.15, 1.25, 0.2), woodMat);
+    winFrame.position.set(0, 6.7, 2.38);
+    mill.add(winFrame);
+    const win = new THREE.Mesh(new THREE.BoxGeometry(0.92, 1.02, 0.25), windowGlow);
+    win.position.set(0, 6.7, 2.41);
+    mill.add(win);
+    const winBox = new THREE.Mesh(new THREE.BoxGeometry(1.22, 0.24, 0.36), woodMat);
+    winBox.position.set(0, 6.02, 2.55);
+    mill.add(winBox);
+    this.addMiniatureFlowers(mill, 0, 6.16, 2.56, 4);
+
+    // Rotating hub with sculpted brass hub cap & 4 storybook cloth sails
     const hub = new THREE.Group();
     hub.position.set(0, 8.75, 2.38);
 
     const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.38, 0.9, 10), woodMat);
     axle.rotation.x = Math.PI / 2;
     hub.add(axle);
+    const hubCap = new THREE.Mesh(new THREE.SphereGeometry(0.36, 10, 8), finialMat);
+    hubCap.scale.set(1, 1, 0.55);
+    hubCap.position.z = 0.45;
+    hub.add(hubCap);
 
     this.windmillBlades = new THREE.Group();
     for (let i = 0; i < 4; i++) {
@@ -996,7 +1176,8 @@ export class FarmWorld {
     mill.add(hub);
 
     this.group.add(mill);
-    this.collisions.addCircle(15.5, -21.0, 4.1);
+    // Solid circular collider covering the grassy knoll so the player never clips inside the hill mesh!
+    this.collisions.addCircle(15.5, -21.0, 6.7);
   }
 
   private buildDuckPond(): void {
@@ -1008,17 +1189,14 @@ export class FarmWorld {
     const pondGroup = new THREE.Group();
     pondGroup.position.set(cx, 0, cz);
 
-    // Sandy pebble shoreline collar (cleanly lifted & polygon-offset above ground)
+    // Sandy pebble shoreline collar (sits cleanly beneath water surface with zero poke-through!)
     const rimMat = new THREE.MeshStandardMaterial({
       color: '#dec79e',
       roughness: 0.92,
-      polygonOffset: true,
-      polygonOffsetFactor: -1,
-      polygonOffsetUnits: -1,
     });
-    const rim = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.06, 0.12, 24), rimMat);
+    const rim = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.06, 0.08, 28), rimMat);
     rim.scale.set(rx + 0.75, 1, rz + 0.75);
-    rim.position.y = 0.03;
+    rim.position.y = 0.02;
     rim.receiveShadow = true;
     pondGroup.add(rim);
 
@@ -1087,7 +1265,7 @@ export class FarmWorld {
     waterGeo.rotateX(-Math.PI / 2);
     const water = new THREE.Mesh(waterGeo, this.pondWaterMat);
     water.scale.set(rx, 1, rz);
-    water.position.y = 0.12;
+    water.position.y = 0.145;
     pondGroup.add(water);
     this.pondWaterMesh = water;
 
@@ -1147,33 +1325,48 @@ export class FarmWorld {
     ];
     for (const [lx, lz, hasFlower] of lilySpots) {
       const pad = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.04, 12, 1, false, 0, Math.PI * 1.82), padMat);
-      pad.position.set(lx, 0.19, lz);
+      pad.position.set(lx, 0.205, lz);
       pad.rotation.y = lx * 1.3;
       pondGroup.add(pad);
       if (hasFlower) {
         const flower = new THREE.Group();
-        flower.position.set(lx, 0.25, lz);
+        flower.position.set(lx, 0.265, lz);
+        // Two-tiered 10-petal sculpted storybook lotus bloom!
         for (let p = 0; p < 6; p++) {
           const petal = new THREE.Mesh(new THREE.SphereGeometry(0.11, 6, 5), lotusMat);
           const ang = (p / 6) * Math.PI * 2;
-          petal.scale.set(1.2, 0.55, 0.75);
-          petal.position.set(Math.cos(ang) * 0.12, 0.02, Math.sin(ang) * 0.12);
+          petal.scale.set(1.25, 0.48, 0.72);
+          petal.position.set(Math.cos(ang) * 0.14, 0.02, Math.sin(ang) * 0.14);
           petal.rotation.y = -ang;
           flower.add(petal);
         }
+        for (let p = 0; p < 4; p++) {
+          const innerPetal = new THREE.Mesh(new THREE.SphereGeometry(0.085, 6, 5), lotusMat);
+          const ang = (p / 4) * Math.PI * 2 + 0.4;
+          innerPetal.scale.set(1.0, 0.65, 0.65);
+          innerPetal.position.set(Math.cos(ang) * 0.075, 0.055, Math.sin(ang) * 0.075);
+          innerPetal.rotation.y = -ang;
+          flower.add(innerPetal);
+        }
         const center = new THREE.Mesh(
-          new THREE.SphereGeometry(0.08, 6, 5),
+          new THREE.SphereGeometry(0.075, 6, 5),
           new THREE.MeshStandardMaterial({ color: '#ffe169', roughness: 0.5 })
         );
-        center.position.y = 0.05;
+        center.position.y = 0.065;
         flower.add(center);
         pondGroup.add(flower);
       }
     }
 
-    // Cozy Wooden Fishing/Watering Dock extending from South shore
-    const woodMat = new THREE.MeshStandardMaterial({ map: this.textures.woodLight, roughness: 0.85 });
+    // Cozy Wooden Fishing/Watering Dock with coiled mooring ropes & floating fishing bobber!
+    const woodMat = new THREE.MeshStandardMaterial({
+      map: this.textures.woodLight,
+      bumpMap: this.textures.woodBump,
+      bumpScale: 0.03,
+      roughness: 0.85,
+    });
     const postMat = new THREE.MeshStandardMaterial({ map: this.textures.woodWarm, roughness: 0.88 });
+    const ropeMat = new THREE.MeshStandardMaterial({ color: '#d6b67c', roughness: 0.92 });
     const dock = new THREE.Group();
     dock.position.set(0, 0, rz + 0.1);
     for (let p = 0; p < 7; p++) {
@@ -1185,12 +1378,37 @@ export class FarmWorld {
     }
     for (const sx of [-0.95, 0.95]) {
       for (const sz of [0.45, -1.75]) {
-        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.11, 0.95, 8), postMat);
-        post.position.set(sx, 0.38, sz);
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.115, 0.98, 8), postMat);
+        post.position.set(sx, 0.4, sz);
         post.castShadow = true;
         dock.add(post);
+        // Coiled hemp mooring rope around front dock pilings!
+        if (sz < 0) {
+          for (let r = 0; r < 3; r++) {
+            const coil = new THREE.Mesh(new THREE.TorusGeometry(0.115, 0.022, 6, 12), ropeMat);
+            coil.rotation.x = Math.PI / 2;
+            coil.position.set(sx, 0.58 + r * 0.042, sz);
+            dock.add(coil);
+          }
+        }
       }
     }
+    // Red-and-white floating fishing bobber near the dock fishing rod!
+    const bobber = new THREE.Group();
+    bobber.position.set(1.55, 0.175, -2.55);
+    bobber.add(
+      new THREE.Mesh(
+        new THREE.SphereGeometry(0.075, 8, 6, 0, Math.PI * 2, 0, Math.PI / 2),
+        new THREE.MeshStandardMaterial({ color: '#eb5546', roughness: 0.35 })
+      )
+    );
+    bobber.add(
+      new THREE.Mesh(
+        new THREE.SphereGeometry(0.075, 8, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2),
+        new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.35 })
+      )
+    );
+    dock.add(bobber);
     pondGroup.add(dock);
 
     // Invisible interaction target at end of dock for refilling watering can at the pond!
@@ -1202,17 +1420,17 @@ export class FarmWorld {
     pondGroup.add(refillHit);
     this.pondRefillMesh = refillHit;
 
-    // 2 Cute little bobbing Pond Ducks
-    for (let i = 0; i < 2; i++) {
-      const duck = this.createCuteDuck(i === 0 ? '#fff6de' : '#ffdd6e');
+    // 2 Cute bobbing Pond Ducks + an adorable tiny yellow baby duckling trailing behind!
+    const duckSpecs: [string, number, number, number, number, number][] = [
+      ['#fff6de', 0, 2.3, 1.5, 0.28, 1.0],
+      ['#ffe270', -0.34, 2.3, 1.5, 0.28, 0.56], // Baby duckling following right behind mother duck!
+      ['#ffdd6e', Math.PI, 3.4, 2.2, 0.34, 0.95],
+    ];
+    for (const [color, angle, dRx, dRz, spd, scale] of duckSpecs) {
+      const duck = this.createCuteDuck(color);
+      duck.scale.setScalar(scale);
       pondGroup.add(duck);
-      this.pondDucks.push({
-        group: duck,
-        angle: i * Math.PI,
-        radiusX: 2.3 + i * 1.1,
-        radiusZ: 1.5 + i * 0.7,
-        speed: 0.28 + i * 0.08,
-      });
+      this.pondDucks.push({ group: duck, angle, radiusX: dRx, radiusZ: dRz, speed: spd });
     }
 
     this.group.add(pondGroup);
@@ -1229,11 +1447,23 @@ export class FarmWorld {
     const beakMat = new THREE.MeshStandardMaterial({ color: '#f59238', roughness: 0.6 });
     const eyeMat = new THREE.MeshStandardMaterial({ color: '#2b211c', roughness: 0.2 });
 
-    const body = new THREE.Mesh(new THREE.SphereGeometry(0.26, 10, 8), mat);
-    body.scale.set(1.25, 0.82, 0.95);
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.26, 12, 10), mat);
+    body.scale.set(1.28, 0.82, 0.95);
     body.position.y = 0.2;
     body.castShadow = true;
     g.add(body);
+
+    // Folded duck wings & upturned tail feather!
+    for (const side of [-1, 1]) {
+      const wing = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), mat);
+      wing.scale.set(1.3, 0.62, 0.35);
+      wing.position.set(-0.02, 0.22, side * 0.22);
+      g.add(wing);
+    }
+    const tail = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.2, 6), mat);
+    tail.position.set(-0.32, 0.3, 0);
+    tail.rotation.z = 0.85;
+    g.add(tail);
 
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), mat);
     head.position.set(0.22, 0.42, 0);
@@ -1270,10 +1500,17 @@ export class FarmWorld {
         const pz = z1 + dz * t;
         const post = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.115, height, 7), postMat);
         post.position.set(px, height * 0.5, pz);
-        post.rotation.z = ((i % 3) - 1) * 0.025; // whimsical handcrafted organic feel
+        post.rotation.z = ((i % 3) - 1) * 0.025;
         post.castShadow = true;
         post.receiveShadow = true;
         this.group.add(post);
+
+        // Beveled pyramidal wooden post cap on every fence post!
+        const cap = new THREE.Mesh(new THREE.ConeGeometry(0.125, 0.11, 4), postMat);
+        cap.rotation.y = Math.PI / 4;
+        cap.position.set(px, height + 0.055, pz);
+        cap.castShadow = true;
+        this.group.add(cap);
       }
 
       // Two warm horizontal rails
@@ -1309,6 +1546,25 @@ export class FarmWorld {
     addFenceRun(4.3, 13.8, 23.4, 13.8, 1.05);
     addFenceRun(23.4, 13.8, 23.4, -1.6, 1.05);
     addFenceRun(4.3, -1.6, 13.6, -1.6, 1.05);
+
+    // Welcoming half-open hinged wooden pasture gate swung cleanly inward!
+    const gateLeaf = new THREE.Group();
+    gateLeaf.position.set(4.3, 0, 5.0);
+    gateLeaf.rotation.y = -0.85; // Swung nicely open inside the pasture, leaving wide walkway!
+    for (const ry of [0.38, 0.78]) {
+      const r = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.12, 1.55), railMat);
+      r.position.set(0, ry, 0.78);
+      r.castShadow = true;
+      gateLeaf.add(r);
+    }
+    const gDiag = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.1, 1.65), railMat);
+    gDiag.position.set(0, 0.58, 0.78);
+    gDiag.rotation.x = 0.25;
+    gateLeaf.add(gDiag);
+    const gEnd = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.92, 0.1), postMat);
+    gEnd.position.set(0, 0.52, 1.54);
+    gateLeaf.add(gEnd);
+    this.group.add(gateLeaf);
 
     // Cute wooden directional signs for Garden & Animal Pasture (positioned cleanly clear of fence posts!)
     this.addSignPost(-3.9, 13.0, 0.25, this.textures.signGarden);
@@ -1554,55 +1810,115 @@ export class FarmWorld {
     const roofMat = new THREE.MeshStandardMaterial({ map: this.textures.roofTerracotta, roughness: 0.82 });
     const hayMat = new THREE.MeshStandardMaterial({ map: this.textures.hayGolden, roughness: 0.92 });
 
-    // 1. Cozy Wooden Chicken Coop at (11.2, 12.1)
+    // 1. Storybook A-Frame Wooden Chicken Coop with arched hen door, straw bedding, side nesting box & cleated ramp!
     const coop = new THREE.Group();
     coop.position.set(11.2, 0, 12.1);
     coop.rotation.y = Math.PI + 0.15;
 
-    for (const sx of [-0.72, 0.72]) {
-      for (const sz of [-0.52, 0.52]) {
-        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.45, 0.12), woodMat);
-        leg.position.set(sx, 0.22, sz);
+    for (const sx of [-0.74, 0.74]) {
+      for (const sz of [-0.54, 0.54]) {
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.48, 0.13), woodMat);
+        leg.position.set(sx, 0.24, sz);
+        leg.castShadow = true;
         coop.add(leg);
       }
     }
-    const coopBody = new THREE.Mesh(new THREE.BoxGeometry(1.75, 1.05, 1.3), woodLight);
-    coopBody.position.y = 0.92;
+    const coopBody = new THREE.Mesh(new THREE.BoxGeometry(1.78, 1.06, 1.32), woodLight);
+    coopBody.position.y = 0.94;
     coopBody.castShadow = true;
     coopBody.receiveShadow = true;
     coop.add(coopBody);
 
-    const coopRoofL = new THREE.Mesh(new THREE.BoxGeometry(1.22, 0.12, 1.55), roofMat);
-    coopRoofL.position.set(-0.5, 1.68, 0);
-    coopRoofL.rotation.z = 0.55;
+    // Side hinged egg-laying nesting box + warm pitched lid!
+    const nestBox = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.54, 0.88), woodMat);
+    nestBox.position.set(1.12, 0.78, 0);
+    nestBox.castShadow = true;
+    coop.add(nestBox);
+    const nestLid = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.08, 0.94), roofMat);
+    nestLid.position.set(1.14, 1.1, 0);
+    nestLid.rotation.z = -0.32;
+    coop.add(nestLid);
+
+    // Dark recessed hen doorway + cozy golden straw peeking out
+    const henDoor = new THREE.Mesh(
+      new THREE.BoxGeometry(0.5, 0.62, 0.08),
+      new THREE.MeshStandardMaterial({ color: '#3b2517', roughness: 0.95 })
+    );
+    henDoor.position.set(0, 0.76, 0.65);
+    coop.add(henDoor);
+    const doorArch = new THREE.Mesh(new THREE.TorusGeometry(0.27, 0.055, 6, 10, Math.PI), woodMat);
+    doorArch.position.set(0, 1.04, 0.67);
+    coop.add(doorArch);
+    const coopStraw = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.12, 0.24), hayMat);
+    coopStraw.position.set(0, 0.48, 0.68);
+    coop.add(coopStraw);
+
+    // Gable roof slopes + timber ridge cap
+    const coopRoofL = new THREE.Mesh(new THREE.BoxGeometry(1.26, 0.13, 1.62), roofMat);
+    coopRoofL.position.set(-0.5, 1.72, 0);
+    coopRoofL.rotation.z = 0.56;
     coopRoofL.castShadow = true;
     coop.add(coopRoofL);
-    const coopRoofR = new THREE.Mesh(new THREE.BoxGeometry(1.22, 0.12, 1.55), roofMat);
-    coopRoofR.position.set(0.5, 1.68, 0);
-    coopRoofR.rotation.z = -0.55;
+    const coopRoofR = new THREE.Mesh(new THREE.BoxGeometry(1.26, 0.13, 1.62), roofMat);
+    coopRoofR.position.set(0.5, 1.72, 0);
+    coopRoofR.rotation.z = -0.56;
     coopRoofR.castShadow = true;
     coop.add(coopRoofR);
+    const coopRidge = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.66, 7), woodMat);
+    coopRidge.rotation.x = Math.PI / 2;
+    coopRidge.position.set(0, 2.04, 0);
+    coop.add(coopRidge);
 
-    // Mini ramp
-    const ramp = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.08, 0.88), woodMat);
-    ramp.position.set(0, 0.24, 0.95);
-    ramp.rotation.x = 0.48;
-    coop.add(ramp);
+    // Cleated chicken ramp ladder!
+    const rampGroup = new THREE.Group();
+    rampGroup.position.set(0, 0.26, 0.98);
+    rampGroup.rotation.x = 0.48;
+    const ramp = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.07, 0.96), woodMat);
+    ramp.castShadow = true;
+    rampGroup.add(ramp);
+    for (let cl = -0.34; cl <= 0.35; cl += 0.17) {
+      const cleat = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.04, 0.045), woodLight);
+      cleat.position.set(0, 0.05, cl);
+      rampGroup.add(cleat);
+    }
+    coop.add(rampGroup);
 
     this.group.add(coop);
-    this.collisions.addBox(11.2, 12.1, 1.9, 1.5);
+    this.collisions.addBox(11.2, 12.1, 2.1, 1.5);
 
-    // 2. Animal Feeding Trough filled with golden hay
+    // 2. Authentic V-Shaped Timber Hay Manger on Crossed X-Legs overflowing with golden hay!
     const trough = new THREE.Group();
     trough.position.set(15.2, 0, 0.6);
-    const troughBox = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.55, 0.85), woodMat);
-    troughBox.position.y = 0.35;
-    troughBox.castShadow = true;
-    troughBox.receiveShadow = true;
-    trough.add(troughBox);
-    const feedFill = new THREE.Mesh(new THREE.BoxGeometry(2.35, 0.24, 0.65), hayMat);
-    feedFill.position.y = 0.62;
+    for (const lx of [-1.05, 1.05]) {
+      for (const tilt of [-0.42, 0.42]) {
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.85, 0.12), woodMat);
+        leg.position.set(lx, 0.38, 0);
+        leg.rotation.x = tilt;
+        leg.castShadow = true;
+        trough.add(leg);
+      }
+    }
+    for (const side of [-1, 1]) {
+      const wall = new THREE.Mesh(new THREE.BoxGeometry(2.68, 0.56, 0.09), woodLight);
+      wall.position.set(0, 0.52, side * 0.28);
+      wall.rotation.x = side * 0.38;
+      wall.castShadow = true;
+      wall.receiveShadow = true;
+      trough.add(wall);
+    }
+    const endGeo = new THREE.BoxGeometry(0.09, 0.5, 0.68);
+    for (const ex of [-1.3, 1.3]) {
+      const end = new THREE.Mesh(endGeo, woodMat);
+      end.position.set(ex, 0.52, 0);
+      trough.add(end);
+    }
+    const feedFill = new THREE.Mesh(new THREE.CapsuleGeometry(0.28, 2.0, 6, 10), hayMat);
+    feedFill.rotation.z = Math.PI / 2;
+    feedFill.scale.set(0.85, 1, 1.08);
+    feedFill.position.y = 0.66;
+    feedFill.castShadow = true;
     trough.add(feedFill);
+
     this.group.add(trough);
     this.collisions.addBox(15.2, 0.6, 2.7, 0.95);
   }
@@ -1750,7 +2066,7 @@ export class FarmWorld {
       [-5.6, 18.0, 0.9],
       [5.8, 18.0, 0.95],
       [-14.2, 1.4, 0.8],
-      [-12.0, -6.2, 0.85],
+      [-14.2, -2.4, 0.85],
       [12.8, -2.2, 0.9],
       [23.2, 14.5, 0.95],
       [-12.2, -17.0, 1.0],
@@ -1975,7 +2291,7 @@ export class FarmWorld {
       [2.9, 17.2, true],
       [-3.5, 3.6, true],
       [3.7, 5.1, true],
-      [-4.2, -13.2, true],
+      [-3.25, -12.8, true],
       [-12.8, -4.6, false],
       [11.2, -11.5, false],
     ];
@@ -2107,7 +2423,7 @@ export class FarmWorld {
       const nz = Math.sin(d.angle) * d.radiusZ;
       const dx = -Math.sin(d.angle) * d.radiusX;
       const dz = Math.cos(d.angle) * d.radiusZ;
-      d.group.position.set(nx, 0.04 + Math.sin(elapsed * 3.0 + d.angle) * 0.025, nz);
+      d.group.position.set(nx, 0.065 + Math.sin(elapsed * 3.0 + d.angle) * 0.025, nz);
       d.group.rotation.y = Math.atan2(-dz, dx);
     }
 

@@ -19,6 +19,8 @@ interface SoilPlot {
   furrowMat: THREE.MeshStandardMaterial;
   highlightMesh: THREE.Mesh;
   cropHolder: THREE.Group;
+  markerStake: THREE.Group;
+  markerBadgeMat: THREE.MeshStandardMaterial;
   state: SoilState;
   moisture: number; // 0..1 (> 0.05 means watered & growing)
   cropType: CropType | null;
@@ -62,7 +64,18 @@ export class GardenSystem {
   }
 
   private buildPlots(): void {
-    const woodMat = new THREE.MeshStandardMaterial({ map: this.textures.woodLight, roughness: 0.86 });
+    const woodMat = new THREE.MeshStandardMaterial({
+      map: this.textures.woodLight,
+      bumpMap: this.textures.woodBump,
+      bumpScale: 0.03,
+      roughness: 0.86,
+    });
+    const postMat = new THREE.MeshStandardMaterial({
+      map: this.textures.woodWarm,
+      bumpMap: this.textures.woodBump,
+      bumpScale: 0.035,
+      roughness: 0.88,
+    });
     const coords: [number, number][] = [
       // East bed (closest to entrance path!)
       [-5.6, 9.4], [-7.6, 9.4],
@@ -95,6 +108,40 @@ export class GardenSystem {
         barZ.receiveShadow = true;
         plotGroup.add(barZ);
       }
+      // Chunky notched corner posts with beveled pyramid caps on all 4 corners of every raised bed!
+      for (const cx of [-1, 1]) {
+        for (const cz of [-1, 1]) {
+          const cPost = new THREE.Mesh(new THREE.BoxGeometry(0.145, 0.24, 0.145), postMat);
+          cPost.position.set(cx * size * 0.5, 0.12, cz * size * 0.5);
+          cPost.castShadow = true;
+          plotGroup.add(cPost);
+          const cCap = new THREE.Mesh(new THREE.ConeGeometry(0.105, 0.06, 4), postMat);
+          cCap.rotation.y = Math.PI / 4;
+          cCap.position.set(cx * size * 0.5, 0.268, cz * size * 0.5);
+          plotGroup.add(cCap);
+        }
+      }
+
+      // Cute miniature wooden crop-marker stake (pops up automatically once a seed is planted!)
+      const markerStake = new THREE.Group();
+      markerStake.position.set(0.66, 0.08, 0.66);
+      markerStake.rotation.y = -0.55;
+      markerStake.visible = false;
+      const mStem = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.42, 0.03), postMat);
+      mStem.position.y = 0.21;
+      mStem.castShadow = true;
+      markerStake.add(mStem);
+      const mBoard = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.16, 0.035), woodMat);
+      mBoard.position.set(0, 0.41, 0);
+      mBoard.rotation.x = -0.22;
+      mBoard.castShadow = true;
+      markerStake.add(mBoard);
+      const markerBadgeMat = new THREE.MeshStandardMaterial({ color: '#f28b42', roughness: 0.55 });
+      const mBadge = new THREE.Mesh(new THREE.SphereGeometry(0.052, 8, 6), markerBadgeMat);
+      mBadge.scale.set(1.15, 0.9, 0.42);
+      mBadge.position.set(0, 0.41, 0.024);
+      markerStake.add(mBadge);
+      plotGroup.add(markerStake);
 
       // Soil bed slab
       const soilMat = new THREE.MeshStandardMaterial({
@@ -173,6 +220,8 @@ export class GardenSystem {
         furrowMat,
         highlightMesh,
         cropHolder,
+        markerStake,
+        markerBadgeMat,
         state: 'untilled',
         moisture: 0,
         cropType: null,
@@ -494,6 +543,7 @@ export class GardenSystem {
     while (plot.cropHolder.children.length > 0) {
       plot.cropHolder.remove(plot.cropHolder.children[0]);
     }
+    plot.markerStake.visible = false;
   }
 
   public refreshLoadedModels(): void {
@@ -507,6 +557,9 @@ export class GardenSystem {
   private rebuildCropVisual(plot: SoilPlot): void {
     this.clearCropVisual(plot);
     if (!plot.cropType) return;
+
+    plot.markerStake.visible = true;
+    plot.markerBadgeMat.color.set(CROPS[plot.cropType].accentColor);
 
     const stage = plot.stage;
     const glbStage = Math.min(4, stage + 1) as 1 | 2 | 3 | 4;

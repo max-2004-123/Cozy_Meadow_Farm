@@ -13,7 +13,7 @@ export interface TreeSpot {
 export class WorldEnhancer {
   public group = new THREE.Group();
   private bobbingBoat: THREE.Object3D | null = null;
-  private boatBaseY = 0.08;
+  private boatBaseY = 0.105;
 
   constructor(scene: THREE.Scene, private collisions: CollisionSystem) {
     scene.add(this.group);
@@ -115,16 +115,16 @@ export class WorldEnhancer {
     // Firewood log stack neatly tucked beside the Farmhouse!
     placeProp('log_stack', -15.4, 0, -1.6, 0.92, 0.35, 0.75);
 
-    // Open grain sack tucked beside the Supply Crate & Chicken Coop
-    placeProp('bag_open', WORLD_CONFIG.supplyCratePos.x - 0.85, 0, WORLD_CONFIG.supplyCratePos.z + 0.15, 0.68, 0.4);
+    // Open grain sack tucked neatly beside the Supply Crate (clear of garden fence) & Chicken Coop
+    placeProp('bag_open', WORLD_CONFIG.supplyCratePos.x - 0.05, 0, WORLD_CONFIG.supplyCratePos.z - 0.88, 0.68, 0.4);
     placeProp('bag_open', 12.6, 0, 12.2, 0.66, -0.5);
 
-    // Extra rustic oak barrel, crate cluster & sculpted Quaternius haystacks near barn/pasture!
-    placeProp('barrel', 13.8, 0, -3.2, 0.95, 0.2, 0.5);
-    placeProp('crate', 14.8, 0, -3.5, 0.85, 0.4, 0.55);
+    // Extra rustic oak barrel, crate cluster & sculpted Quaternius haystacks near barn/pasture (clear of barn ladder & windmill knoll!)
+    placeProp('barrel', 12.2, 0, -3.2, 0.95, 0.2, 0.5);
+    placeProp('crate', 11.3, 0, -3.7, 0.85, 0.4, 0.55);
     placeProp('hay_stack', 10.0, 0, -5.0, 1.35, 0.5, 0.85);
     placeProp('hay_stack', 21.6, 0, -1.0, 1.4, -0.4, 0.85);
-    placeProp('hay_stack', 19.2, 0, -14.8, 1.45, 0.9, 0.85);
+    placeProp('hay_stack', 19.6, 0, -13.6, 1.45, 0.9, 0.85);
 
     // Cozy Scenic Wooden Gazebo tucked in the blossom grove overlooking the Duck Pond!
     placeProp('gazebo', -14.6, 0, -13.6, 3.8, 0.42, 1.75);
@@ -140,21 +140,41 @@ export class WorldEnhancer {
         container.add(replacement);
       };
 
-      // 1. Sculpted Oak Rainwater Barrel with shimmering water rim tucked cleanly inside the staves!
+      // 1. Sculpted Oak Rainwater Barrel with raised open oak lip, sparkling clear water & wooden dipper ladle!
       const glbBarrel = modelLibrary.cloneGrounded('barrel', 1.08);
       if (glbBarrel) {
+        const rimMat = new THREE.MeshStandardMaterial({ color: '#5c3c24', roughness: 0.86 });
+        const barrelRim = new THREE.Mesh(new THREE.TorusGeometry(0.325, 0.036, 8, 24), rimMat);
+        barrelRim.rotation.x = Math.PI / 2;
+        barrelRim.position.y = 1.096;
+        barrelRim.castShadow = true;
+        glbBarrel.add(barrelRim);
+
         const waterDisc = new THREE.Mesh(
-          new THREE.CircleGeometry(0.30, 16),
+          new THREE.CircleGeometry(0.315, 24),
           new THREE.MeshStandardMaterial({
-            color: '#7eddf8',
-            emissive: '#3899cc',
-            emissiveIntensity: 0.18,
-            roughness: 0.12,
+            color: '#7fe6ff',
+            emissive: '#35a6db',
+            emissiveIntensity: 0.24,
+            roughness: 0.08,
+            metalness: 0.1,
           })
         );
         waterDisc.rotation.x = -Math.PI / 2;
-        waterDisc.position.y = 1.01;
+        waterDisc.position.y = 1.09;
         glbBarrel.add(waterDisc);
+
+        // Little wooden water dipper ladle resting across the oak rim!
+        const ladleWood = new THREE.MeshStandardMaterial({ color: '#b57b45', roughness: 0.82 });
+        const ladleHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.02, 0.48, 6), ladleWood);
+        ladleHandle.rotation.z = Math.PI / 2 - 0.12;
+        ladleHandle.rotation.y = 0.5;
+        ladleHandle.position.set(0.08, 1.135, 0.04);
+        glbBarrel.add(ladleHandle);
+        const ladleCup = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.055, 0.085, 8), ladleWood);
+        ladleCup.position.set(-0.11, 1.11, -0.06);
+        glbBarrel.add(ladleCup);
+
         swapVisual(propSlots.waterBarrel, glbBarrel);
       }
 
@@ -213,7 +233,7 @@ export class WorldEnhancer {
       [-13.5, -15.2, 0.9, 0.4],
       [-11.8, -19.8, 1.05, 1.2],
       [1.4, -18.2, 0.85, 2.1],
-      [11.2, -17.4, 1.1, 0.7],
+      [8.6, -16.4, 1.1, 0.7],
       [-21.2, 14.5, 0.95, 1.6],
       [21.6, 15.8, 0.9, 2.4],
     ];
@@ -222,9 +242,9 @@ export class WorldEnhancer {
     });
 
     const berryBushes: [number, number, number][] = [
-      [-16.4, 10.6, 1.05],
+      [-17.8, 9.6, 1.05],
       [-15.8, 1.8, 0.95],
-      [-13.2, -10.4, 1.1],
+      [-15.8, -11.8, 1.1],
       [4.0, -14.2, 1.0],
       [24.2, 6.2, 1.15],
       [-6.8, 19.8, 1.0],
@@ -258,7 +278,7 @@ export class WorldEnhancer {
       [-3.1, 21.6], [3.1, 21.8], [-3.3, 19.8], [3.3, 19.9],
       [-3.2, 16.4], [3.1, 16.2], [-3.0, 13.8], [3.0, 14.0],
       [-3.1, 11.0], [3.0, 4.4], [-3.2, 1.8], [3.1, 1.5],
-      [-6.2, 1.4], [-11.5, 1.4], [-15.4, 6.2], [-15.4, 9.8],
+      [-6.2, 1.4], [-10.0, 1.4], [-15.4, 6.2], [-15.4, 9.8],
       [-11.8, -4.6], [-11.0, -7.8], [-7.2, -8.5], [-3.2, -10.4],
       [-8.6, -12.8], [-1.2, -15.2], [5.8, -10.8], [9.4, -12.2],
       [4.2, 14.5], [9.2, 14.6], [16.5, 14.5], [22.4, 14.4],

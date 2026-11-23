@@ -6,6 +6,8 @@ import { CollisionSystem } from './world/CollisionSystem';
 import { SkyAndLighting } from './world/SkyAndLighting';
 import { FarmWorld } from './world/FarmWorld';
 import { WorldEnhancer } from './world/WorldEnhancer';
+import { CozyDetails } from './world/CozyDetails';
+import { getFarmTextures } from './assets/textures';
 import { ParticleSystem } from './effects/ParticleSystem';
 import { PostEffects } from './effects/PostEffects';
 import { modelLibrary } from './assets/modelLoader';
@@ -33,6 +35,7 @@ class CozyFarmGame {
   private postEffects: PostEffects;
   private world: FarmWorld;
   private worldEnhancer: WorldEnhancer;
+  private cozyDetails: CozyDetails;
   private garden: GardenSystem;
   private animals: AnimalSystem;
   private viewmodel: Viewmodel;
@@ -66,6 +69,7 @@ class CozyFarmGame {
     this.postEffects = new PostEffects(this.renderer, this.scene, this.camera);
     this.world = new FarmWorld(this.scene, this.collisions, this.sky, this.particles);
     this.worldEnhancer = new WorldEnhancer(this.scene, this.collisions);
+    this.cozyDetails = new CozyDetails(this.scene, getFarmTextures(), this.collisions);
 
     this.viewmodel = new Viewmodel(this.camera);
 
@@ -379,6 +383,7 @@ class CozyFarmGame {
     this.sky.update(dt, this.elapsed);
     this.world.update(dt, this.elapsed, this.sky.nightFactor);
     this.worldEnhancer.update(this.elapsed);
+    this.cozyDetails.update(this.elapsed, this.sky.nightFactor);
     this.garden.update(dt, this.elapsed);
     this.animals.update(dt, this.elapsed, this.player.position);
     this.particles.update(dt, this.elapsed, this.sky.nightFactor);

@@ -398,6 +398,22 @@ export class AnimalSystem {
       bodyGroup.add(puff);
     }
 
+    // Cute pastel ribbon collar + dainty golden sheep bell!
+    const ribbonColor = variant % 2 === 0 ? '#7ec8f2' : '#f79ab8';
+    const sheepCollar = new THREE.Mesh(
+      new THREE.TorusGeometry(0.24, 0.036, 7, 14),
+      new THREE.MeshStandardMaterial({ color: ribbonColor, roughness: 0.65 })
+    );
+    sheepCollar.rotation.y = Math.PI / 2;
+    sheepCollar.position.set(0.45, 0.94, 0);
+    bodyGroup.add(sheepCollar);
+    const sheepBell = new THREE.Mesh(
+      new THREE.SphereGeometry(0.065, 8, 6),
+      new THREE.MeshStandardMaterial({ color: '#f5cb52', metalness: 0.45, roughness: 0.3 })
+    );
+    sheepBell.position.set(0.51, 0.69, 0);
+    bodyGroup.add(sheepBell);
+
     // Cute warm-cocoa face + curled wool bangs & rosy inner ears!
     const headGroup = new THREE.Group();
     headGroup.position.set(0.62, 1.02, 0);

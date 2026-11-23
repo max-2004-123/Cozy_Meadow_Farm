@@ -228,6 +228,6 @@ export const WORLD_CONFIG = {
   pondRadiusX: 6.8,
   pondRadiusZ: 5.0,
   waterBarrelPos: { x: -4.1, z: 3.5 },
-  supplyCratePos: { x: -4.1, z: 11.4 },
+  supplyCratePos: { x: -3.55, z: 11.05 },
   marketStandPos: { x: -4.5, z: 15.0 },
 };

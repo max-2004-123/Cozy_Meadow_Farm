@@ -243,12 +243,16 @@ export class Viewmodel {
         faceMat,
       ]);
       pouch.add(bag);
+      // 3D crimped paper top seal strip on each seed packet!
+      const seal = new THREE.Mesh(new THREE.BoxGeometry(0.154, 0.016, 0.032), sideMat);
+      seal.position.y = 0.098;
+      pouch.add(seal);
       pouch.rotation.set(-0.14, -0.42, 0.12);
       pouch.position.set(-0.02, 0.02, 0.02);
       this.meshes.set(id, pouch);
     }
 
-    // 4. Woven Animal Feed Basket overflowing with golden kernels!
+    // 4. Woven Animal Feed Basket with arched wooden handle, ribbed staves & golden kernels!
     const feed = new THREE.Group();
     const bowlMat = new THREE.MeshStandardMaterial({ color: '#c98c55', roughness: 0.82 });
     const rimMat = new THREE.MeshStandardMaterial({ color: '#9c6334', roughness: 0.86 });
@@ -258,6 +262,14 @@ export class Viewmodel {
     bowlRim.rotation.x = Math.PI / 2;
     bowlRim.position.y = 0.048;
     feed.add(bowlRim);
+    const midBand = new THREE.Mesh(new THREE.TorusGeometry(0.106, 0.008, 6, 16), rimMat);
+    midBand.rotation.x = Math.PI / 2;
+    midBand.position.y = 0.0;
+    feed.add(midBand);
+    const basketHandle = new THREE.Mesh(new THREE.TorusGeometry(0.124, 0.011, 7, 16, Math.PI), rimMat);
+    basketHandle.position.y = 0.048;
+    basketHandle.rotation.y = Math.PI / 2;
+    feed.add(basketHandle);
     const grain = new THREE.Mesh(
       new THREE.SphereGeometry(0.116, 12, 8),
       new THREE.MeshStandardMaterial({ color: '#f5cf64', roughness: 0.78 })
