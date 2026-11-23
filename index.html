@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sunnybrook Farm — Cozy 3D Countryside</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="game-root">
+      <canvas id="game-canvas"></canvas>
+
+      <!-- Active HUD -->
+      <div id="hud" class="hud">
+        <!-- Top-Left: Day / Time / Quick Controls -->
+        <div class="hud-top-left">
+          <div class="pill-card time-pill">
+            <span id="time-icon" class="time-icon"></span>
+            <div class="time-meta">
+              <div class="time-top-row">
+                <span id="day-label" class="day-label">Day 1</span>
+                <span class="dot-sep">•</span>
+                <span id="phase-label" class="phase-label">Morning</span>
+              </div>
+              <div id="clock-label" class="clock-label">9:15 AM</div>
+            </div>
+            <div class="time-actions">
+              <button id="btn-speed" class="icon-btn" title="Toggle Time Speed (T)">1×</button>
+              <button id="btn-sound" class="icon-btn" title="Toggle Sound (M)">🔊</button>
+              <button id="btn-bag" class="icon-btn" title="Open Farm Bag (I)">🎒</button>
+              <button id="btn-menu" class="icon-btn" title="Menu & Time Settings (Esc / P)">⚙️</button>
+            </div>
+          </div>
+
+          <!-- Always-visible compact Water & Coin Strip -->
+          <div class="mini-stats-row">
+            <div class="mini-pill water-pill" title="Watering Can Level">
+              <span id="water-mini-icon" class="mini-svg"></span>
+              <div class="water-meter-track">
+                <div id="water-meter-fill" class="water-meter-fill" style="width: 100%"></div>
+              </div>
+              <span id="water-meter-text" class="mini-val">100%</span>
+            </div>
+
+            <div class="mini-pill coin-pill" title="Sunnybrook Coins">
+              <span id="coin-mini-icon" class="mini-svg"></span>
+              <span id="coin-count" class="mini-val">25</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top-Right: Cozy Task List -->
+        <div class="hud-top-right">
+          <div class="parchment-card task-card">
+            <div class="card-header">
+              <span id="task-header-title">🌱 Farm Welcome Guide</span>
+              <span id="task-counter" class="task-counter">0/3</span>
+            </div>
+            <ul id="task-list" class="task-list"></ul>
+          </div>
+        </div>
+
+        <!-- Center: Crosshair & Contextual Interaction Prompt -->
+        <div class="hud-center">
+          <div id="crosshair" class="crosshair"></div>
+          <div id="interact-card" class="interact-card hidden">
+            <div class="interact-head">
+              <div id="interact-icon" class="interact-icon"></div>
+              <div class="interact-titles">
+                <div class="interact-title-row">
+                  <span id="interact-title" class="interact-title"></span>
+                  <span id="interact-badge" class="status-badge hidden"></span>
+                </div>
+                <div id="interact-subtitle" class="interact-subtitle"></div>
+              </div>
+            </div>
+
+            <!-- Crop Growth Progress Bar -->
+            <div id="crop-progress-wrap" class="progress-wrap hidden">
+              <div class="progress-header">
+                <span id="crop-progress-label">Growing</span>
+                <span id="crop-progress-pct">0%</span>
+              </div>
+              <div class="progress-track">
+                <div id="crop-progress-fill" class="progress-fill"></div>
+              </div>
+            </div>
+
+            <!-- Soil Moisture Meter -->
+            <div id="moisture-wrap" class="moisture-wrap hidden">
+              <span class="moisture-label">💧 Soil Moisture</span>
+              <div class="moisture-track">
+                <div id="moisture-fill" class="moisture-fill"></div>
+              </div>
+            </div>
+
+            <div id="interact-action" class="interact-action">
+              <span class="key-cap">Click / E</span>
+              <span id="interact-action-text">Interact</span>
+            </div>
+            <div id="interact-hint" class="interact-hint hidden"></div>
+          </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toast-container" class="toast-container"></div>
+
+        <!-- Bottom: Harvest Pouch Summary + 9-Slot Wooden Hotbar -->
+        <div class="hud-bottom">
+          <div id="harvest-strip" class="harvest-strip"></div>
+          <div id="selected-item-label" class="selected-item-label">Garden Hoe</div>
+          <div id="hotbar" class="hotbar"></div>
+          <div class="controls-strip">
+            <span><b>WASD</b> Move</span>
+            <span><b>Shift</b> Sprint</span>
+            <span><b>Click / E</b> Interact</span>
+            <span><b>1–9 / Scroll</b> Hotbar</span>
+            <span><b>I</b> Farm Bag</span>
+            <span><b>Esc</b> Pause</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expandable Farm Inventory Bag Modal (I) -->
+      <div id="inventory-modal" class="modal-backdrop hidden">
+        <div class="modal-card inventory-modal">
+          <div class="modal-header">
+            <div>
+              <h2>🧺 Farm Satchel & Harvest</h2>
+              <p class="modal-sub">Click any item to equip it in your hand</p>
+            </div>
+            <button id="btn-close-inv" class="close-btn">✕</button>
+          </div>
+
+          <div class="inv-section">
+            <h3>Tools, Seeds & Animal Feed</h3>
+            <div id="inv-grid-supplies" class="inv-grid"></div>
+          </div>
+
+          <div class="inv-section">
+            <h3>Harvested Vegetables & Farm Products</h3>
+            <div id="inv-grid-harvest" class="inv-grid"></div>
+          </div>
+
+          <div class="inv-footer">
+            <span class="inv-tip">💡 Restock free seeds & feed at the wooden Supply Crate by the garden, or sell harvests at the Market Stand!</span>
+            <button id="btn-resume-from-inv" class="primary-btn small-btn">Back to Farm</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Welcome / Pause Storybook Overlay -->
+      <div id="menu-overlay" class="modal-backdrop">
+        <div class="modal-card menu-card">
+          <div class="brand-badge">🌻 Storybook 3D Cozy Farming</div>
+          <h1 id="menu-title">Sunnybrook Farm</h1>
+          <p id="menu-subtitle" class="menu-desc">
+            Step through the wooden gate into a peaceful pastel countryside. Till warm soil, grow colorful vegetables, and befriend adorable chickens, cows, sheep, and pigs.
+          </p>
+
+          <div class="quick-goals">
+            <div class="goal-chip">🌱 Till & plant seeds</div>
+            <div class="goal-chip">💧 Water & watch crops grow</div>
+            <div class="goal-chip">🐔 Feed animals & collect gifts</div>
+          </div>
+
+          <button id="btn-play" class="primary-btn">Enter Sunnybrook Farm</button>
+
+          <div class="menu-settings">
+            <div class="setting-group">
+              <span class="setting-label">Time of Day</span>
+              <div class="preset-row">
+                <button class="preset-btn" data-time="morning">🌅 Morning</button>
+                <button class="preset-btn" data-time="noon">☀️ Noon</button>
+                <button class="preset-btn" data-time="sunset">🌇 Sunset</button>
+                <button class="preset-btn" data-time="night">🌙 Night</button>
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <span class="setting-label">Audio & Visuals</span>
+              <div class="preset-row">
+                <button id="btn-toggle-music" class="preset-btn active">🎵 Cozy Music: On</button>
+                <button id="btn-toggle-mute" class="preset-btn active">🔊 All Audio: On</button>
+                <button id="btn-toggle-vfx" class="preset-btn active">✨ Dreamy Lighting: On</button>
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <span class="setting-label">Mouse Sensitivity: <strong id="sens-value">1.0×</strong></span>
+              <div class="slider-row">
+                <span>Slow</span>
+                <input id="input-sensitivity" type="range" min="0.2" max="2.0" step="0.1" value="1.0" />
+                <span>Fast</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="menu-controls-grid">
+            <div><kbd>W A S D</kbd> Walk</div>
+            <div><kbd>Shift</kbd> Sprint</div>
+            <div><kbd>Mouse</kbd> Look around</div>
+            <div><kbd>Click</kbd> / <kbd>E</kbd> Interact</div>
+            <div><kbd>1–9</kbd> Select item</div>
+            <div><kbd>I</kbd> Inventory Bag</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
