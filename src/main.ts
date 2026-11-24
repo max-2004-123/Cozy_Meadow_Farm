@@ -74,14 +74,15 @@ class CozyFarmGame {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobileDevice ? 1.25 : 1.5));
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 0.96;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     this.scene = new THREE.Scene();
 
-    this.camera = new THREE.PerspectiveCamera(64, window.innerWidth / window.innerHeight, 0.18, 210);
+    // Far plane 360 cleanly encloses the 260-radius sky dome everywhere in the expanded valley!
+    this.camera = new THREE.PerspectiveCamera(64, window.innerWidth / window.innerHeight, 0.18, 360);
     this.scene.add(this.camera);
 
     // Core world & dreamy post-processing lighting systems
@@ -513,7 +514,7 @@ class CozyFarmGame {
     const dt = Math.min(0.05, this.clock.getDelta());
     this.elapsed += dt;
 
-    this.sky.update(dt, this.elapsed);
+    this.sky.update(dt, this.elapsed, this.camera.position);
     this.world.update(dt, this.elapsed, this.sky.nightFactor);
     this.worldEnhancer.update(this.elapsed);
     this.cozyDetails.update(this.elapsed, this.sky.nightFactor);

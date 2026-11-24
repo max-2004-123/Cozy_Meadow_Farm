@@ -153,6 +153,7 @@ function createSoftHaloTexture(innerHex: string, midHex: string): THREE.CanvasTe
 
 export class SkyAndLighting {
   private scene: THREE.Scene;
+  private skyMesh!: THREE.Mesh;
   private skyMat: THREE.ShaderMaterial;
   private sunLight: THREE.DirectionalLight;
   private hemiLight: THREE.HemisphereLight;
@@ -199,8 +200,8 @@ export class SkyAndLighting {
       this.setupSoftEnvironment(renderer);
     }
 
-    // 1. Custom Gradient Storybook Sky Dome (with subtle solar atmospheric scatter glow!)
-    const skyGeo = new THREE.SphereGeometry(225, 32, 20);
+    // 1. Custom Gradient Storybook Sky Dome (follows camera position so it NEVER clips at far edges!)
+    const skyGeo = new THREE.SphereGeometry(260, 28, 18);
     this.skyMat = new THREE.ShaderMaterial({
       side: THREE.BackSide,
       depthWrite: false,
@@ -240,15 +241,21 @@ export class SkyAndLighting {
         }
       `,
     });
-    scene.add(new THREE.Mesh(skyGeo, this.skyMat));
+    this.skyMesh = new THREE.Mesh(skyGeo, this.skyMat);
+    scene.add(this.skyMesh);
 
     // 2. Soft horizon fog
     scene.fog = new THREE.Fog('#d0f0ff', 50, 185);
 
-    // 3. Primary Sun / Moon Directional Light with crisp soft shadows
+    // 3. Primary Sun / Moon Directional Light with crisp shadows (tuned resolution for smooth 60fps!)
+    const isMobile =
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0 ||
+      window.matchMedia('(pointer: coarse)').matches;
+    const shadowRes = isMobile ? 1024 : 1536;
     this.sunLight = new THREE.DirectionalLight('#fff5d6', 1.65);
     this.sunLight.castShadow = true;
-    this.sunLight.shadow.mapSize.set(2048, 2048);
+    this.sunLight.shadow.mapSize.set(shadowRes, shadowRes);
     this.sunLight.shadow.camera.near = 6;
     this.sunLight.shadow.camera.far = 128;
     const d = 40;
@@ -526,7 +533,10 @@ export class SkyAndLighting {
     };
   }
 
-  public update(dt: number, elapsed: number): void {
+  public update(dt: number, elapsed: number, camPos?: THREE.Vector3): void {
+    if (camPos && this.skyMesh) {
+      this.skyMesh.position.set(camPos.x, 0, camPos.z);
+    }
     this.normalizedTime += (dt * this.timeSpeedMultiplier) / this.dayDurationSeconds;
     if (this.normalizedTime >= 1) {
       this.normalizedTime -= 1;

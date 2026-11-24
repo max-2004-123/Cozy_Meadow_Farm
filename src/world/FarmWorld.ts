@@ -2223,65 +2223,80 @@ export class FarmWorld {
     const petalGeo = new THREE.SphereGeometry(0.068, 6, 5);
     const centerGeo = new THREE.SphereGeometry(0.048, 6, 5);
 
-    const petalMats = petalColors.map(
-      (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.56 })
-    );
+    // High-performance InstancedMesh batching for ALL 59 wildflower patches (cuts ~1,600 draw calls down to 3!)
+    const patchSpots: [number, number, number][] = [];
+    let seed = 1;
+    for (let z = 24.5; z >= -8.0; z -= 2.1) {
+      if (Math.abs(z - 18.5) < 1.2) continue;
+      if (z > 4.8 && z < 9.5) continue;
+      patchSpots.push([-2.55 - (seed % 3) * 0.25, z, seed++]);
+      patchSpots.push([2.55 + (seed % 3) * 0.25, z + 0.6, seed++]);
+    }
+    const scenicSpots: [number, number][] = [
+      [-6.5, 17.5], [-9.2, 17.4], [-12.5, 17.6], [6.8, 17.5], [10.0, 17.4], [13.5, 17.6],
+      [-15.2, 11.5], [-15.2, 8.2], [-15.2, 4.5], [-12.5, 12.6], [-8.8, 12.6],
+      [-10.2, -1.6], [-13.0, -2.8], [-12.4, -7.8], [-11.5, -10.4],
+      [-1.5, -12.6], [-8.8, -13.4], [-11.6, -15.4], [0.8, -15.8], [2.4, -18.5],
+      [6.8, -11.8], [10.4, -13.6], [13.2, -15.6], [5.8, -2.5], [10.2, -2.4],
+      [3.2, 13.8], [7.8, 14.5], [14.5, 14.6], [19.8, 14.5],
+      [-5.5, 16.2], [-2.8, 15.2], [3.5, 15.5], [5.0, 11.8],
+    ];
+    for (const [fx, fz] of scenicSpots) {
+      patchSpots.push([fx, fz, seed++]);
+    }
 
-    const createFlowerPatch = (x: number, z: number, seed: number) => {
-      const cluster = new THREE.Group();
-      cluster.position.set(x, 0, z);
-      const stems = 3 + (seed % 2);
-      const mat = petalMats[seed % petalMats.length];
+    let totalStems = 0;
+    for (const [, , s] of patchSpots) totalStems += 3 + (s % 2);
+    const stemInstGeo = new THREE.CylinderGeometry(0.015, 0.022, 1, 5);
+    const instPetalMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.56 });
+    const stemInst = new THREE.InstancedMesh(stemInstGeo, stemMat, totalStems);
+    const petalInst = new THREE.InstancedMesh(petalGeo, instPetalMat, totalStems * 5);
+    const centerInst = new THREE.InstancedMesh(centerGeo, centerMat, totalStems);
 
+    const dummy = new THREE.Object3D();
+    const tmpCol = new THREE.Color();
+    let sIdx = 0;
+    let pIdx = 0;
+
+    for (const [px, pz, s] of patchSpots) {
+      const stems = 3 + (s % 2);
+      tmpCol.set(petalColors[s % petalColors.length]);
       for (let i = 0; i < stems; i++) {
-        const ang = (i / stems) * Math.PI * 2 + seed;
+        const ang = (i / stems) * Math.PI * 2 + s;
         const rad = 0.14 + (i % 2) * 0.14;
-        const h = 0.28 + ((seed + i) % 3) * 0.08;
-        const fx = Math.cos(ang) * rad;
-        const fz = Math.sin(ang) * rad;
+        const h = 0.28 + ((s + i) % 3) * 0.08;
+        const fx = px + Math.cos(ang) * rad;
+        const fz = pz + Math.sin(ang) * rad;
 
-        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.022, h, 5), stemMat);
-        stem.position.set(fx, h * 0.5, fz);
-        cluster.add(stem);
+        dummy.position.set(fx, h * 0.5, fz);
+        dummy.rotation.set(0, 0, 0);
+        dummy.scale.set(1, h, 1);
+        dummy.updateMatrix();
+        stemInst.setMatrixAt(sIdx, dummy.matrix);
 
-        // True 5-petal sculpted blossom!
-        const head = new THREE.Group();
-        head.position.set(fx, h + 0.015, fz);
-        head.rotation.y = seed + i;
+        dummy.position.set(fx, h + 0.032, fz);
+        dummy.scale.set(1, 0.72, 1);
+        dummy.updateMatrix();
+        centerInst.setMatrixAt(sIdx, dummy.matrix);
+
         for (let p = 0; p < 5; p++) {
-          const pa = (p / 5) * Math.PI * 2;
-          const petal = new THREE.Mesh(petalGeo, mat);
-          petal.scale.set(1.25, 0.36, 0.78);
-          petal.position.set(Math.cos(pa) * 0.082, 0, Math.sin(pa) * 0.082);
-          petal.rotation.y = -pa;
-          petal.rotation.z = -0.18;
-          head.add(petal);
+          const pa = (p / 5) * Math.PI * 2 + s + i;
+          dummy.position.set(fx + Math.cos(pa) * 0.082, h + 0.015, fz + Math.sin(pa) * 0.082);
+          dummy.rotation.set(0, -pa, -0.18);
+          dummy.scale.set(1.25, 0.36, 0.78);
+          dummy.updateMatrix();
+          petalInst.setMatrixAt(pIdx, dummy.matrix);
+          petalInst.setColorAt(pIdx, tmpCol);
+          pIdx++;
         }
-        const dot = new THREE.Mesh(centerGeo, centerMat);
-        dot.scale.set(1, 0.72, 1);
-        dot.position.y = 0.018;
-        head.add(dot);
-        cluster.add(head);
+        sIdx++;
       }
-
-      // Soft curved basal leaves
-      for (let b = 0; b < 3; b++) {
-        const ba = (b / 3) * Math.PI * 2 + seed;
-        const blade = new THREE.Mesh(leafGeo, stemMat);
-        blade.scale.set(1.5, 0.28, 0.75);
-        blade.position.set(Math.cos(ba) * 0.16, 0.07, Math.sin(ba) * 0.16);
-        blade.rotation.y = -ba;
-        blade.rotation.z = 0.25;
-        cluster.add(blade);
-      }
-
-      this.group.add(cluster);
-      this.flowerClusters.push({
-        group: cluster,
-        phase: seed * 0.73,
-        baseRotZ: ((seed % 5) - 2) * 0.03,
-      });
-    };
+    }
+    stemInst.instanceMatrix.needsUpdate = true;
+    centerInst.instanceMatrix.needsUpdate = true;
+    petalInst.instanceMatrix.needsUpdate = true;
+    if (petalInst.instanceColor) petalInst.instanceColor.needsUpdate = true;
+    this.group.add(stemInst, petalInst, centerInst);
 
     // Tall cheerful Golden Sunflowers along the entrance fence & farmhouse!
     const addSunflower = (x: number, z: number, height: number, yaw: number) => {
@@ -2335,29 +2350,6 @@ export class FarmWorld {
     for (const [sx, sz, sh, sy] of sunflowerSpots) {
       addSunflower(sx, sz, sh, sy);
     }
-
-    let seed = 1;
-    // Line both sides of the main entrance path!
-    for (let z = 24.5; z >= -8.0; z -= 2.1) {
-      if (Math.abs(z - 18.5) < 1.2) continue;
-      if (z > 4.8 && z < 9.5) continue; // Keep garden/pasture crossroads open
-      createFlowerPatch(-2.55 - (seed % 3) * 0.25, z, seed++);
-      createFlowerPatch(2.55 + (seed % 3) * 0.25, z + 0.6, seed++);
-    }
-
-    // Flower borders along entrance fence, garden perimeter, farmhouse & pond
-    const scenicSpots: [number, number][] = [
-      [-6.5, 17.5], [-9.2, 17.4], [-12.5, 17.6], [6.8, 17.5], [10.0, 17.4], [13.5, 17.6],
-      [-15.2, 11.5], [-15.2, 8.2], [-15.2, 4.5], [-12.5, 12.6], [-8.8, 12.6],
-      [-10.2, -1.6], [-13.0, -2.8], [-12.4, -7.8], [-11.5, -10.4],
-      [-1.5, -12.6], [-8.8, -13.4], [-11.6, -15.4], [0.8, -15.8], [2.4, -18.5],
-      [6.8, -11.8], [10.4, -13.6], [13.2, -15.6], [5.8, -2.5], [10.2, -2.4],
-      [3.2, 13.8], [7.8, 14.5], [14.5, 14.6], [19.8, 14.5],
-      [-5.5, 16.2], [-2.8, 15.2], [3.5, 15.5], [5.0, 11.8],
-    ];
-    for (const [fx, fz] of scenicSpots) {
-      createFlowerPatch(fx, fz, seed++);
-    }
   }
 
   private buildLanterns(): void {
@@ -2387,10 +2379,10 @@ export class FarmWorld {
     const hookGeo = new THREE.TubeGeometry(hookCurve, 12, 0.024, 6, false);
 
     const lanternSpots: [number, number, boolean][] = [
-      [-2.9, 17.2, true],
-      [2.9, 17.2, true],
+      [-2.9, 17.2, false],
+      [2.9, 17.2, false],
       [-3.5, 3.6, true],
-      [3.7, 5.1, true],
+      [3.7, 5.1, false],
       [-3.25, -12.8, true],
       [-12.8, -4.6, false],
       [11.2, -11.5, false],

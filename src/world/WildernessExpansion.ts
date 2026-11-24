@@ -252,13 +252,9 @@ export class WildernessExpansion {
     const lCap = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.16, 6), ironMat);
     lCap.position.set(1.32, 2.7, -6.2);
     pier.add(lCap);
-    const lHalo = this.sky.createLanternHaloSprite(2.2);
+    const lHalo = this.sky.createLanternHaloSprite(2.5);
     lHalo.position.set(1.32, 2.48, -6.2);
     pier.add(lHalo);
-    const lLight = new THREE.PointLight('#ffcb77', 0, 16, 1.5);
-    lLight.position.set(1.32, 2.45, -6.2);
-    pier.add(lLight);
-    this.sky.registerNightLight(lLight);
 
     // Bait crate on the pier
     const baitCrate = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.52, 0.52), postMat);

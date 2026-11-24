@@ -174,15 +174,10 @@ export class BuildingInteriors {
       this.hearthFlames.push(fl);
     }
 
-    this.hearthLight = new THREE.PointLight('#ffaa55', 2.4, 14, 1.4);
-    this.hearthLight.position.set(0.55, 1.25, 0);
+    this.hearthLight = new THREE.PointLight('#ffaa55', 2.8, 16, 1.35);
+    this.hearthLight.position.set(0.55, 1.65, 0);
     hearth.add(this.hearthLight);
     this.houseInteriorRoot.add(hearth);
-
-    // Warm Farmhouse ceiling lamp
-    this.houseCeilingLight = new THREE.PointLight('#ffe0a8', 1.4, 14, 1.4);
-    this.houseCeilingLight.position.set(0.5, 3.9, 0);
-    this.houseInteriorRoot.add(this.houseCeilingLight);
     this.farmhouseGroup.add(this.houseInteriorRoot);
   }
 

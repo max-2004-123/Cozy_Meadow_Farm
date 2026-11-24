@@ -95,7 +95,7 @@ export class PostEffects {
       window.matchMedia('(pointer: coarse)').matches;
 
     this.composer = new EffectComposer(renderer);
-    this.composer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.0 : 1.5));
+    this.composer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.0 : 1.25));
     this.composer.setSize(size.x, size.y);
     // Default off on mobile touch devices for silky 60fps (can still toggle ON in ⚙️ menu!)
     if (isMobile) {
@@ -105,9 +105,9 @@ export class PostEffects {
     const renderPass = new RenderPass(scene, camera);
     this.composer.addPass(renderPass);
 
-    // HDR-only velvety bloom (threshold > 1.0 so ONLY glowing lanterns, sun, windows, sparkles & fireflies bloom!)
+    // Half-resolution HDR-only velvety bloom (cuts GPU fillrate by ~75% while staying soft & dreamy!)
     this.bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(size.x, size.y),
+      new THREE.Vector2(Math.max(1, Math.floor(size.x * 0.5)), Math.max(1, Math.floor(size.y * 0.5))),
       0.22, // strength
       0.45, // radius
       1.06  // threshold
@@ -125,7 +125,7 @@ export class PostEffects {
 
   public setSize(width: number, height: number): void {
     this.composer.setSize(width, height);
-    this.bloomPass.resolution.set(width, height);
+    this.bloomPass.resolution.set(Math.max(1, Math.floor(width * 0.5)), Math.max(1, Math.floor(height * 0.5)));
   }
 
   public update(
