@@ -85,7 +85,7 @@ export class FarmWorld {
   private buildGroundAndPaths(): void {
     // Unified single-mesh meadow + cobblestone path + mud wallow terrain!
     // Blending everything in one MeshStandardMaterial guarantees ZERO coplanar Z-fighting / floor flickering!
-    const groundGeo = new THREE.CircleGeometry(260, 84);
+    const groundGeo = new THREE.CircleGeometry(460, 84);
     const groundMat = new THREE.MeshStandardMaterial({
       map: this.textures.grass,
       roughness: 0.94,
@@ -160,13 +160,13 @@ export class FarmWorld {
     const innerColors = ['#88c469', '#7eb963', '#96cf74', '#81bc68'];
     const outerColors = ['#7eb786', '#89bea0', '#96c4b5', '#87ba9d'];
 
-    const hillCount = 26;
+    const hillCount = 28;
     for (let i = 0; i < hillCount; i++) {
       const angle = (i / hillCount) * Math.PI * 2 + (i % 2) * 0.08;
-      const dist = 108 + (i % 3) * 16;
-      const rx = 24 + (i % 4) * 7.5;
-      const ry = 10.5 + (i % 5) * 3.5;
-      const rz = 20 + ((i + 1) % 3) * 6.5;
+      const dist = 330 + (i % 3) * 28;
+      const rx = 56 + (i % 4) * 18;
+      const ry = 28 + (i % 5) * 9;
+      const rz = 48 + ((i + 1) % 3) * 16;
       const mat = new THREE.MeshStandardMaterial({
         color: innerColors[i % innerColors.length],
         roughness: 0.96,
@@ -184,10 +184,10 @@ export class FarmWorld {
     const farCount = 22;
     for (let i = 0; i < farCount; i++) {
       const angle = (i / farCount) * Math.PI * 2 + 0.18;
-      const dist = 158 + (i % 3) * 20;
-      const rx = 34 + (i % 3) * 10;
-      const ry = 20 + (i % 4) * 7;
-      const rz = 30 + (i % 2) * 8;
+      const dist = 395 + (i % 3) * 26;
+      const rx = 74 + (i % 3) * 20;
+      const ry = 46 + (i % 4) * 14;
+      const rz = 65 + (i % 2) * 18;
       const mat = new THREE.MeshStandardMaterial({
         color: outerColors[i % outerColors.length],
         roughness: 0.98,

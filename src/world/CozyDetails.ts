@@ -411,13 +411,13 @@ export class CozyDetails {
       this.group.add(p);
     };
 
-    // Place scenic pine clusters cleanly around the expanded outer valley ring (radius 86..96, grounded at y=0)
+    // Place scenic pine clusters cleanly around the outer 300m mountain perimeter!
     const groveAngles = [0.22, 0.42, 0.95, 1.18, 1.85, 2.15, 2.75, 3.45, 3.92, 4.48, 5.15, 5.68];
     groveAngles.forEach((baseA, gIdx) => {
       for (let k = 0; k < 3; k++) {
         const a = baseA + (k - 1) * 0.085;
-        const r = 86 + (k % 2) * 5.5 + (gIdx % 2) * 3.0;
-        const s = 1.6 + ((gIdx + k) % 3) * 0.35;
+        const r = 296 + (k % 2) * 8.0 + (gIdx % 2) * 4.0;
+        const s = 2.0 + ((gIdx + k) % 3) * 0.4;
         addPine(Math.cos(a) * r, -0.05, Math.sin(a) * r, s, gIdx + k);
       }
     });

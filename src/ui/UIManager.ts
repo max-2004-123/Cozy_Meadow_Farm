@@ -32,6 +32,8 @@ export class UIManager {
   private waterMeterText = document.getElementById('water-meter-text')!;
   private coinMiniIcon = document.getElementById('coin-mini-icon')!;
   private coinCountEl = document.getElementById('coin-count')!;
+  private regionLabelEl = document.getElementById('region-label')!;
+  private compassLabelEl = document.getElementById('compass-label')!;
 
   private taskHeaderTitle = document.getElementById('task-header-title')!;
   private taskCounter = document.getElementById('task-counter')!;
@@ -186,6 +188,22 @@ export class UIManager {
   public syncSensitivity(value: number): void {
     this.inputSensitivity.value = value.toFixed(1);
     this.sensValueEl.textContent = `${value.toFixed(1)}×`;
+  }
+
+  public updateRegionCompass(regionName: string, playerX: number, playerZ: number): void {
+    if (this.regionLabelEl.textContent !== regionName) {
+      this.regionLabelEl.textContent = regionName;
+    }
+    const distHome = Math.round(Math.hypot(playerX, playerZ));
+    if (distHome <= 28) {
+      this.compassLabelEl.textContent = '';
+      return;
+    }
+    // Direction from player back to Farm Home (0, 0)
+    const ang = Math.atan2(-playerX, -playerZ); // 0 = South (+Z), PI = North (-Z)
+    const dirs = ['S', 'SE', 'E', 'NE', 'N', 'NW', 'W', 'SW'];
+    const idx = Math.round((((ang / Math.PI) * 4) + 8) % 8) % 8;
+    this.compassLabelEl.textContent = `• Home ${distHome}m ${dirs[idx]}`;
   }
 
   public renderHotbar(): void {

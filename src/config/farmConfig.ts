@@ -310,7 +310,7 @@ export const INITIAL_ANIMALS: AnimalSpawnSpec[] = [
 export const WORLD_CONFIG = {
   spawnPos: { x: 0, y: 1.72, z: 23.2 },
   spawnYaw: 0,
-  worldBounds: { minX: -82, maxX: 82, minZ: -86, maxZ: 54 },
+  worldBounds: { minX: -292, maxX: 292, minZ: -292, maxZ: 292 },
   pastureBounds: { minX: 5.2, maxX: 22.6, minZ: -0.6, maxZ: 13.0 },
   pondCenter: { x: -5.5, z: -18.8 },
   pondRadiusX: 6.8,

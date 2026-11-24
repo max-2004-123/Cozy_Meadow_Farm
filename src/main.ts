@@ -8,6 +8,7 @@ import { FarmWorld } from './world/FarmWorld';
 import { WorldEnhancer } from './world/WorldEnhancer';
 import { CozyDetails } from './world/CozyDetails';
 import { WildernessExpansion } from './world/WildernessExpansion';
+import { OpenWorldChunks } from './world/OpenWorldChunks';
 import { BuildingInteriors } from './world/BuildingInteriors';
 import { FishingSystem } from './gameplay/FishingSystem';
 import { HuntingSystem } from './gameplay/HuntingSystem';
@@ -43,6 +44,7 @@ class CozyFarmGame {
   private worldEnhancer: WorldEnhancer;
   private cozyDetails: CozyDetails;
   private wilderness: WildernessExpansion;
+  private openWorld: OpenWorldChunks;
   private interiors: BuildingInteriors;
   private fishing: FishingSystem;
   private hunting: HuntingSystem;
@@ -81,8 +83,8 @@ class CozyFarmGame {
 
     this.scene = new THREE.Scene();
 
-    // Far plane 360 cleanly encloses the 260-radius sky dome everywhere in the expanded valley!
-    this.camera = new THREE.PerspectiveCamera(64, window.innerWidth / window.innerHeight, 0.18, 360);
+    // Far plane 520 cleanly encloses the 420-radius sky dome & distant mountain ring across the 600m open world!
+    this.camera = new THREE.PerspectiveCamera(64, window.innerWidth / window.innerHeight, 0.18, 520);
     this.scene.add(this.camera);
 
     // Core world & dreamy post-processing lighting systems
@@ -93,6 +95,7 @@ class CozyFarmGame {
     this.worldEnhancer = new WorldEnhancer(this.scene, this.collisions);
     this.cozyDetails = new CozyDetails(this.scene, getFarmTextures(), this.collisions);
     this.wilderness = new WildernessExpansion(this.scene, getFarmTextures(), this.collisions, this.sky);
+    this.openWorld = new OpenWorldChunks(this.scene, getFarmTextures(), this.collisions);
 
     this.viewmodel = new Viewmodel(this.camera);
 
@@ -519,6 +522,7 @@ class CozyFarmGame {
     this.worldEnhancer.update(this.elapsed);
     this.cozyDetails.update(this.elapsed, this.sky.nightFactor);
     this.wilderness.update(dt, this.elapsed, this.sky.nightFactor, this.player.position);
+    this.openWorld.update(this.player.position);
     this.interiors.update(dt, this.elapsed, this.player.position);
     this.garden.update(dt, this.elapsed);
     this.animals.update(dt, this.elapsed, this.player.position);
@@ -562,8 +566,13 @@ class CozyFarmGame {
     const fishingHud = this.fishing.getHudInfo(this.player.position);
     this.ui.updateInteraction(drivingHud ?? fishingHud ?? (target ? target.getInfo() : null));
 
-    // Update time HUD & spatial soundscape (Duck Pond + Emerald Lake!)
+    // Update time HUD, open-world region compass & spatial soundscape (Duck Pond + Emerald Lake!)
     this.ui.updateTime(this.sky.getTimeInfo(), this.sky.timeSpeedMultiplier);
+    this.ui.updateRegionCompass(
+      this.openWorld.getRegionLabel(this.player.position.x, this.player.position.z),
+      this.player.position.x,
+      this.player.position.z
+    );
     const distToPond = Math.hypot(
       this.player.position.x - WORLD_CONFIG.pondCenter.x,
       this.player.position.z - WORLD_CONFIG.pondCenter.z

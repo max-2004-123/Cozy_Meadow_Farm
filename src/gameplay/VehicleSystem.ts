@@ -540,9 +540,9 @@ export class VehicleSystem {
       }
     }
 
-    const maxFwd = boost ? 21.0 : 15.5;
-    const maxRev = -7.5;
-    const accel = boost ? 22.0 : 15.0;
+    const maxFwd = boost ? 26.0 : 18.0;
+    const maxRev = -8.5;
+    const accel = boost ? 26.0 : 17.5;
 
     if (brake) {
       this.speed *= Math.max(0, 1 - dt * 8.5);

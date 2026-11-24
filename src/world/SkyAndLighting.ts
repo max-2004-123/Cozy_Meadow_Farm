@@ -200,8 +200,8 @@ export class SkyAndLighting {
       this.setupSoftEnvironment(renderer);
     }
 
-    // 1. Custom Gradient Storybook Sky Dome (follows camera position so it NEVER clips at far edges!)
-    const skyGeo = new THREE.SphereGeometry(260, 28, 18);
+    // 1. Custom Gradient Storybook Sky Dome (follows camera position so it NEVER clips anywhere in the 600m world!)
+    const skyGeo = new THREE.SphereGeometry(420, 28, 18);
     this.skyMat = new THREE.ShaderMaterial({
       side: THREE.BackSide,
       depthWrite: false,
@@ -244,8 +244,8 @@ export class SkyAndLighting {
     this.skyMesh = new THREE.Mesh(skyGeo, this.skyMat);
     scene.add(this.skyMesh);
 
-    // 2. Soft horizon fog
-    scene.fog = new THREE.Fog('#d0f0ff', 50, 185);
+    // 2. Soft open-world horizon fog (blends distant streaming chunks seamlessly!)
+    scene.fog = new THREE.Fog('#d0f0ff', 95, 340);
 
     // 3. Primary Sun / Moon Directional Light with crisp shadows (tuned resolution for smooth 60fps!)
     const isMobile =
