@@ -53,6 +53,27 @@ export class TaskSystem {
       completed: false,
       isTutorial: false,
     },
+    {
+      id: 'quest_fish',
+      title: 'Catch a fresh fish',
+      hint: 'Equip Fishing Rod [8] at the Duck Pond or Emerald Lake (North) and reel in a bite!',
+      completed: false,
+      isTutorial: false,
+    },
+    {
+      id: 'quest_hunt',
+      title: 'Go hunting in the Pine Forest',
+      hint: 'Equip Hunting Bow [9], head West or East past the fences, and shoot wild game!',
+      completed: false,
+      isTutorial: false,
+    },
+    {
+      id: 'quest_build',
+      title: 'Furnish a building interior',
+      hint: 'Open the Farmhouse or Red Barn door, step inside, and build a blueprint furniture spot!',
+      completed: false,
+      isTutorial: false,
+    },
   ];
 
   public tutorialCompleted = false;

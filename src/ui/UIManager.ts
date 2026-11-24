@@ -252,6 +252,8 @@ export class UIManager {
     const supplyIds: ItemId[] = [
       'hoe',
       'watering_can',
+      'fishing_rod',
+      'hunting_bow',
       'seed_carrot',
       'seed_radish',
       'seed_tomato',
@@ -267,6 +269,14 @@ export class UIManager {
       'prod_milk',
       'prod_wool',
       'prod_truffle',
+      'fish_carp',
+      'fish_trout',
+      'fish_salmon',
+      'fish_koi',
+      'hunt_pelt',
+      'hunt_meat',
+      'hunt_venison',
+      'hunt_antler',
     ];
 
     const renderList = (container: HTMLElement, ids: ItemId[]) => {

@@ -30,6 +30,11 @@ export class FarmWorld {
   public pondRefillMesh!: THREE.Object3D;
   public supplyCrateMesh!: THREE.Object3D;
   public marketStandMesh!: THREE.Object3D;
+  public farmhouseGroup!: THREE.Group;
+  public farmhouseDoorPivot!: THREE.Group;
+  public barnGroup!: THREE.Group;
+  public barnDoorLeftPivot!: THREE.Group;
+  public barnDoorRightPivot!: THREE.Group;
   public placeholderTreesGroup = new THREE.Group();
   public treeSpots: TreeSpot[] = [];
 
@@ -80,7 +85,7 @@ export class FarmWorld {
   private buildGroundAndPaths(): void {
     // Unified single-mesh meadow + cobblestone path + mud wallow terrain!
     // Blending everything in one MeshStandardMaterial guarantees ZERO coplanar Z-fighting / floor flickering!
-    const groundGeo = new THREE.CircleGeometry(185, 72);
+    const groundGeo = new THREE.CircleGeometry(260, 84);
     const groundMat = new THREE.MeshStandardMaterial({
       map: this.textures.grass,
       roughness: 0.94,
@@ -155,13 +160,13 @@ export class FarmWorld {
     const innerColors = ['#88c469', '#7eb963', '#96cf74', '#81bc68'];
     const outerColors = ['#7eb786', '#89bea0', '#96c4b5', '#87ba9d'];
 
-    const hillCount = 24;
+    const hillCount = 26;
     for (let i = 0; i < hillCount; i++) {
       const angle = (i / hillCount) * Math.PI * 2 + (i % 2) * 0.08;
-      const dist = 70 + (i % 3) * 14;
-      const rx = 20 + (i % 4) * 6.5;
-      const ry = 8.5 + (i % 5) * 3.0;
-      const rz = 17 + ((i + 1) % 3) * 5.5;
+      const dist = 108 + (i % 3) * 16;
+      const rx = 24 + (i % 4) * 7.5;
+      const ry = 10.5 + (i % 5) * 3.5;
+      const rz = 20 + ((i + 1) % 3) * 6.5;
       const mat = new THREE.MeshStandardMaterial({
         color: innerColors[i % innerColors.length],
         roughness: 0.96,
@@ -176,10 +181,10 @@ export class FarmWorld {
     }
 
     // Outer storybook misty distant ridge ring
-    const farCount = 20;
+    const farCount = 22;
     for (let i = 0; i < farCount; i++) {
       const angle = (i / farCount) * Math.PI * 2 + 0.18;
-      const dist = 118 + (i % 3) * 18;
+      const dist = 158 + (i % 3) * 20;
       const rx = 34 + (i % 3) * 10;
       const ry = 20 + (i % 4) * 7;
       const rz = 30 + (i % 2) * 8;
@@ -361,19 +366,43 @@ export class FarmWorld {
     });
     this.sky.registerGlowMaterial(windowGlowMat);
 
-    // Cozy stone base foundation
-    const base = new THREE.Mesh(new THREE.BoxGeometry(8.8, 0.85, 7.2), stoneMat);
-    base.position.y = 0.42;
-    base.castShadow = true;
-    base.receiveShadow = true;
-    house.add(base);
+    // Walk-in Interior Wooden Plank Floor + Hollow Exterior Walls with Front Doorway Cutout!
+    const interiorFloor = new THREE.Mesh(new THREE.BoxGeometry(8.2, 0.14, 6.6), woodLightMat);
+    interiorFloor.position.set(0, 0.07, 0);
+    interiorFloor.receiveShadow = true;
+    house.add(interiorFloor);
 
-    // Main cream plaster walls
-    const body = new THREE.Mesh(new THREE.BoxGeometry(8.4, 4.2, 6.8), plasterMat);
-    body.position.y = 2.9;
-    body.castShadow = true;
-    body.receiveShadow = true;
-    house.add(body);
+    // Exterior stone skirting (3 solid sides + split front flanking the doorway)
+    const addHouseWall = (lx: number, ly: number, lz: number, w: number, h: number, d: number, mat: THREE.Material) => {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+      m.position.set(lx, ly, lz);
+      m.castShadow = true;
+      m.receiveShadow = true;
+      house.add(m);
+    };
+    // Back (-X), North (-Z), South (+Z) walls
+    addHouseWall(-4.08, 2.45, 0, 0.28, 4.9, 6.8, plasterMat);
+    addHouseWall(0, 2.45, -3.28, 8.4, 4.9, 0.28, plasterMat);
+    addHouseWall(0, 2.45, 3.28, 8.4, 4.9, 0.28, plasterMat);
+    // Front (+X) wall split cleanly around doorway (z in [-0.74, +0.74], height 2.62)
+    addHouseWall(4.08, 2.45, -2.07, 0.28, 4.9, 2.66, plasterMat);
+    addHouseWall(4.08, 2.45, 2.07, 0.28, 4.9, 2.66, plasterMat);
+    addHouseWall(4.08, 3.76, 0, 0.28, 2.28, 1.56, plasterMat);
+
+    // Exterior stone foundation skirting along sides & back
+    addHouseWall(-4.26, 0.34, 0, 0.22, 0.68, 7.1, stoneMat);
+    addHouseWall(0, 0.34, -3.46, 8.6, 0.68, 0.22, stoneMat);
+    addHouseWall(0, 0.34, 3.46, 8.6, 0.68, 0.22, stoneMat);
+
+    // Interior ceiling & exposed timber rafters!
+    const ceiling = new THREE.Mesh(new THREE.BoxGeometry(8.2, 0.14, 6.6), woodLightMat);
+    ceiling.position.set(0, 4.68, 0);
+    house.add(ceiling);
+    for (let rx = -3.0; rx <= 3.1; rx += 1.5) {
+      const rafter = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.22, 6.5), woodMat);
+      rafter.position.set(rx, 4.54, 0);
+      house.add(rafter);
+    }
 
     // Half-timber corner posts, alternating stone corner quoins & cross beams
     for (const sx of [-4.22, 4.22]) {
@@ -466,16 +495,16 @@ export class FarmWorld {
     dormer.add(dMullH);
     house.add(dormer);
 
-    // Cozy Front Porch (facing +X/+Z toward farm plaza -> local +X side)
-    const porchFloor = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.42, 6.6), woodLightMat);
-    porchFloor.position.set(5.2, 0.5, 0);
+    // Cozy Front Porch (low smooth walk-in deck facing +X toward farm plaza)
+    const porchFloor = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.22, 6.6), woodLightMat);
+    porchFloor.position.set(5.2, 0.11, 0);
     porchFloor.castShadow = true;
     porchFloor.receiveShadow = true;
     house.add(porchFloor);
 
-    // Front porch steps
-    const step1 = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.24, 2.2), stoneMat);
-    step1.position.set(6.55, 0.22, 0);
+    // Front porch threshold step
+    const step1 = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.14, 2.2), stoneMat);
+    step1.position.set(6.55, 0.07, 0);
     step1.receiveShadow = true;
     house.add(step1);
 
@@ -511,7 +540,7 @@ export class FarmWorld {
 
     // Cozy Porch Wooden Bench with pastel cushion + Woven Welcome Doormat + Hanging Flower Baskets!
     const bench = new THREE.Group();
-    bench.position.set(4.85, 0.72, -2.0);
+    bench.position.set(4.85, 0.46, -2.0);
     bench.add(new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.1, 1.55), woodMat));
     const benchBack = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.58, 1.55), woodMat);
     benchBack.position.set(-0.28, 0.32, 0);
@@ -528,7 +557,7 @@ export class FarmWorld {
       new THREE.BoxGeometry(0.75, 0.03, 1.2),
       new THREE.MeshStandardMaterial({ color: '#c48f56', roughness: 0.96 })
     );
-    doormat.position.set(5.05, 0.72, 0);
+    doormat.position.set(5.05, 0.23, 0);
     house.add(doormat);
 
     // Hanging terracotta flower baskets under porch eaves
@@ -543,33 +572,45 @@ export class FarmWorld {
       this.addMiniatureFlowers(house, 6.1, 2.74, hz, 4);
     }
 
-    // Arched paneled wooden front door with glowing peep-window, iron strap hinges & floral wreath!
-    const door = new THREE.Mesh(new THREE.BoxGeometry(0.18, 2.35, 1.3), woodMat);
-    door.position.set(4.24, 1.92, 0);
-    house.add(door);
-    const doorFrame = new THREE.Mesh(new THREE.BoxGeometry(0.22, 2.48, 1.46), woodLightMat);
-    doorFrame.position.set(4.21, 1.96, 0);
-    house.add(doorFrame);
+    // Interactive Hinged Front Door (swings open so player can walk right inside the Farmhouse!)
+    const doorIronMat = new THREE.MeshStandardMaterial({ color: '#47403b', metalness: 0.45, roughness: 0.5 });
+    // Fixed doorway jamb frame
+    for (const jz of [-0.74, 0.74]) {
+      const jamb = new THREE.Mesh(new THREE.BoxGeometry(0.32, 2.66, 0.12), woodLightMat);
+      jamb.position.set(4.12, 1.33, jz);
+      house.add(jamb);
+    }
+    const lintel = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.14, 1.62), woodLightMat);
+    lintel.position.set(4.12, 2.64, 0);
+    house.add(lintel);
+
+    const doorPivot = new THREE.Group();
+    doorPivot.position.set(4.18, 0.14, -0.68);
+    const door = new THREE.Mesh(new THREE.BoxGeometry(0.14, 2.46, 1.36), woodMat);
+    door.position.set(0, 1.23, 0.68);
+    door.castShadow = true;
+    doorPivot.add(door);
+
     const doorWindow = new THREE.Mesh(new THREE.CircleGeometry(0.22, 14), windowGlowMat);
     doorWindow.rotation.y = Math.PI / 2;
-    doorWindow.position.set(4.345, 2.45, 0);
-    house.add(doorWindow);
+    doorWindow.position.set(0.08, 1.92, 0.68);
+    doorPivot.add(doorWindow);
     const doorWinRing = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.035, 7, 16), woodLightMat);
     doorWinRing.rotation.y = Math.PI / 2;
-    doorWinRing.position.set(4.35, 2.45, 0);
-    house.add(doorWinRing);
+    doorWinRing.position.set(0.085, 1.92, 0.68);
+    doorPivot.add(doorWinRing);
     const doorWinMullV = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.44, 0.032), woodLightMat);
-    doorWinMullV.position.set(4.355, 2.45, 0);
-    house.add(doorWinMullV);
+    doorWinMullV.position.set(0.09, 1.92, 0.68);
+    doorPivot.add(doorWinMullV);
     const doorWinMullH = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.032, 0.44), woodLightMat);
-    doorWinMullH.position.set(4.355, 2.45, 0);
-    house.add(doorWinMullH);
+    doorWinMullH.position.set(0.09, 1.92, 0.68);
+    doorPivot.add(doorWinMullH);
+
     // Wrought-iron strap hinges
-    const doorIronMat = new THREE.MeshStandardMaterial({ color: '#47403b', metalness: 0.45, roughness: 0.5 });
-    for (const hy of [1.28, 2.52]) {
+    for (const hy of [0.68, 1.96]) {
       const hinge = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.09, 0.42), doorIronMat);
-      hinge.position.set(4.34, hy, -0.4);
-      house.add(hinge);
+      hinge.position.set(0.08, hy, 0.28);
+      doorPivot.add(hinge);
     }
     // Cozy pastel wreath on the front door!
     const wreath = new THREE.Mesh(
@@ -577,23 +618,30 @@ export class FarmWorld {
       new THREE.MeshStandardMaterial({ color: '#5fa652', roughness: 0.8 })
     );
     wreath.rotation.y = Math.PI / 2;
-    wreath.position.set(4.36, 1.92, 0);
-    house.add(wreath);
+    wreath.position.set(0.09, 1.38, 0.68);
+    doorPivot.add(wreath);
     for (let b = 0; b < 5; b++) {
       const a = (b / 5) * Math.PI * 2;
       const berry = new THREE.Mesh(
         new THREE.SphereGeometry(0.045, 6, 5),
         new THREE.MeshStandardMaterial({ color: b % 2 === 0 ? '#ff8fb3' : '#ffe066', roughness: 0.5 })
       );
-      berry.position.set(4.4, 1.92 + Math.sin(a) * 0.24, Math.cos(a) * 0.24);
-      house.add(berry);
+      berry.position.set(0.125, 1.38 + Math.sin(a) * 0.24, 0.68 + Math.cos(a) * 0.24);
+      doorPivot.add(berry);
     }
     const knob = new THREE.Mesh(
-      new THREE.SphereGeometry(0.08, 8, 8),
+      new THREE.SphereGeometry(0.075, 8, 8),
       new THREE.MeshStandardMaterial({ color: '#f2c96b', metalness: 0.4, roughness: 0.3 })
     );
-    knob.position.set(4.36, 1.85, 0.42);
-    house.add(knob);
+    knob.position.set(0.09, 1.28, 1.16);
+    doorPivot.add(knob);
+    const innerKnob = knob.clone();
+    innerKnob.position.set(-0.09, 1.28, 1.16);
+    doorPivot.add(innerKnob);
+
+    house.add(doorPivot);
+    this.farmhouseDoorPivot = doorPivot;
+    this.farmhouseGroup = house;
 
     // Helper for cozy shuttered glowing windows + window flower boxes
     const addWindow = (x: number, y: number, z: number, rotY: number) => {
@@ -699,8 +747,18 @@ export class FarmWorld {
     house.updateMatrixWorld(true);
     this.chimneyTip.set(-1.9, 9.7, -1.6).applyMatrix4(house.matrixWorld);
 
-    // Collision box for farmhouse + porch
-    this.collisions.addRotatedBox(-17.8, -6.2, 11.4, 7.6, 0.35);
+    // Per-wall colliders leaving the front doorway (local +X, z in [-0.74, +0.74]) 100% walk-in!
+    const addHouseCol = (lx: number, lz: number, w: number, d: number) => {
+      const wp = new THREE.Vector3(lx, 0, lz).applyMatrix4(house.matrixWorld);
+      this.collisions.addRotatedBox(wp.x, wp.z, w, d, -house.rotation.y);
+    };
+    addHouseCol(-4.15, 0, 0.55, 6.9);    // Back wall
+    addHouseCol(0, -3.35, 8.5, 0.55);    // North wall
+    addHouseCol(0, 3.35, 8.5, 0.55);     // South wall
+    addHouseCol(4.12, -2.1, 0.45, 2.55); // Front-left wall
+    addHouseCol(4.12, 2.1, 0.45, 2.55);  // Front-right wall
+    addHouseCol(6.15, -2.1, 0.35, 1.8);  // Porch left rail
+    addHouseCol(6.15, 2.1, 0.35, 1.8);   // Porch right rail
   }
 
   private buildBarn(): void {
@@ -736,18 +794,40 @@ export class FarmWorld {
     });
     this.sky.registerGlowMaterial(loftGlow);
 
-    // Foundation
-    const base = new THREE.Mesh(new THREE.BoxGeometry(9.6, 0.55, 7.8), stoneMat);
-    base.position.y = 0.27;
-    base.receiveShadow = true;
-    barn.add(base);
+    // Walk-in Barn Plank Floor + Hollow Exterior Red Barn Walls with Wide Double-Door Cutout!
+    const barnFloorMat = new THREE.MeshStandardMaterial({ map: this.textures.woodWarm, roughness: 0.9 });
+    const barnFloor = new THREE.Mesh(new THREE.BoxGeometry(9.0, 0.12, 7.2), barnFloorMat);
+    barnFloor.position.set(0, 0.06, 0);
+    barnFloor.receiveShadow = true;
+    barn.add(barnFloor);
 
-    // Main red barn walls
-    const body = new THREE.Mesh(new THREE.BoxGeometry(9.2, 4.4, 7.4), redMat);
-    body.position.y = 2.65;
-    body.castShadow = true;
-    body.receiveShadow = true;
-    barn.add(body);
+    const addBarnWall = (lx: number, ly: number, lz: number, w: number, h: number, d: number, mat: THREE.Material) => {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+      m.position.set(lx, ly, lz);
+      m.castShadow = true;
+      m.receiveShadow = true;
+      barn.add(m);
+    };
+    // Back (-Z), Left (-X), Right (+X) walls
+    addBarnWall(0, 2.45, -3.56, 9.2, 4.9, 0.28, redMat);
+    addBarnWall(-4.46, 2.45, 0, 0.28, 4.9, 7.4, redMat);
+    addBarnWall(4.46, 2.45, 0, 0.28, 4.9, 7.4, redMat);
+    // Front (+Z) wall split cleanly around wide 3.44m double barn doorway (x in [-1.72, +1.72], height 3.48)
+    addBarnWall(-3.16, 2.45, 3.56, 2.88, 4.9, 0.28, redMat);
+    addBarnWall(3.16, 2.45, 3.56, 2.88, 4.9, 0.28, redMat);
+    addBarnWall(0, 4.19, 3.56, 3.52, 1.42, 0.28, redMat);
+
+    // Exterior stone skirting on sides & back
+    addBarnWall(0, 0.28, -3.76, 9.5, 0.56, 0.22, stoneMat);
+    addBarnWall(-4.66, 0.28, 0, 0.22, 0.56, 7.7, stoneMat);
+    addBarnWall(4.66, 0.28, 0, 0.22, 0.56, 7.7, stoneMat);
+
+    // Interior timber hayloft beams & rafters
+    for (let bz = -2.4; bz <= 2.5; bz += 1.6) {
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(8.9, 0.22, 0.22), barnFloorMat);
+      beam.position.set(0, 4.58, bz);
+      barn.add(beam);
+    }
 
     // Classic Gambrel / storybook pitched barn roof
     const gableShape = new THREE.Shape();
@@ -790,32 +870,40 @@ export class FarmWorld {
       }
     }
 
-    // Iconic X-braced double barn doors on front (+Z)
-    for (const side of [-1, 1]) {
-      const doorFrame = new THREE.Mesh(new THREE.BoxGeometry(1.78, 3.25, 0.16), redMat);
-      doorFrame.position.set(side * 0.95, 2.1, 3.74);
-      barn.add(doorFrame);
+    // Iconic Hinged X-braced Double Barn Doors on front (+Z) — swing wide open to walk inside!
+    const buildBarnDoorLeaf = (side: -1 | 1): THREE.Group => {
+      const pivot = new THREE.Group();
+      pivot.position.set(side * 1.72, 0.12, 3.7);
+      const offsetX = -side * 0.86;
 
-      // Cream outer outline
-      const topBar = new THREE.Mesh(new THREE.BoxGeometry(1.82, 0.16, 0.22), creamMat);
-      topBar.position.set(side * 0.95, 3.68, 3.76);
-      barn.add(topBar);
-      const botBar = new THREE.Mesh(new THREE.BoxGeometry(1.82, 0.16, 0.22), creamMat);
-      botBar.position.set(side * 0.95, 0.56, 3.76);
-      barn.add(botBar);
-      for (const bx of [-0.84, 0.84]) {
-        const vBar = new THREE.Mesh(new THREE.BoxGeometry(0.15, 3.25, 0.22), creamMat);
-        vBar.position.set(side * 0.95 + bx, 2.12, 3.76);
-        barn.add(vBar);
+      const doorFrame = new THREE.Mesh(new THREE.BoxGeometry(1.72, 3.32, 0.14), redMat);
+      doorFrame.position.set(offsetX, 1.66, 0);
+      doorFrame.castShadow = true;
+      pivot.add(doorFrame);
+
+      const topBar = new THREE.Mesh(new THREE.BoxGeometry(1.74, 0.15, 0.2), creamMat);
+      topBar.position.set(offsetX, 3.24, 0);
+      pivot.add(topBar);
+      const botBar = new THREE.Mesh(new THREE.BoxGeometry(1.74, 0.15, 0.2), creamMat);
+      botBar.position.set(offsetX, 0.08, 0);
+      pivot.add(botBar);
+      for (const bx of [-0.8, 0.8]) {
+        const vBar = new THREE.Mesh(new THREE.BoxGeometry(0.14, 3.3, 0.2), creamMat);
+        vBar.position.set(offsetX + bx, 1.66, 0);
+        pivot.add(vBar);
       }
-      // Diagonal X planks
       for (const diag of [-1, 1]) {
-        const xBar = new THREE.Mesh(new THREE.BoxGeometry(0.14, 3.3, 0.2), creamMat);
-        xBar.position.set(side * 0.95, 2.12, 3.77);
-        xBar.rotation.z = diag * 0.49;
-        barn.add(xBar);
+        const xBar = new THREE.Mesh(new THREE.BoxGeometry(0.13, 3.3, 0.18), creamMat);
+        xBar.position.set(offsetX, 1.66, 0);
+        xBar.rotation.z = diag * 0.47;
+        pivot.add(xBar);
       }
-    }
+      barn.add(pivot);
+      return pivot;
+    };
+    this.barnDoorLeftPivot = buildBarnDoorLeaf(-1);
+    this.barnDoorRightPivot = buildBarnDoorLeaf(1);
+    this.barnGroup = barn;
 
     // Open hayloft window + swung-open timber shutters + protruding hay + pulley wheel & rope!
     const loftWindow = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.5, 0.2), loftGlow);
@@ -971,7 +1059,17 @@ export class FarmWorld {
     this.sky.registerNightLight(barnLight);
 
     this.group.add(barn);
-    this.collisions.addRotatedBox(18.5, -7.2, 9.8, 8.0, -0.22);
+    barn.updateMatrixWorld(true);
+    // Per-wall colliders leaving the wide front double doorway (x in [-1.72, +1.72]) 100% walk-in!
+    const addBarnCol = (lx: number, lz: number, w: number, d: number) => {
+      const wp = new THREE.Vector3(lx, 0, lz).applyMatrix4(barn.matrixWorld);
+      this.collisions.addRotatedBox(wp.x, wp.z, w, d, -barn.rotation.y);
+    };
+    addBarnCol(0, -3.65, 9.4, 0.55);    // Back wall
+    addBarnCol(-4.55, 0, 0.55, 7.6);    // Left wall
+    addBarnCol(4.55, 0, 0.55, 7.6);     // Right wall
+    addBarnCol(-3.2, 3.65, 2.85, 0.5);  // Front-left wall
+    addBarnCol(3.2, 3.65, 2.85, 0.5);   // Front-right wall
   }
 
   private buildWindmill(): void {
@@ -1530,9 +1628,11 @@ export class FarmWorld {
     // 1. Entrance front fence (leaving welcoming gateway at X in [-2.6, 2.6])
     addFenceRun(-26, 18.5, -2.9, 18.5);
     addFenceRun(2.9, 18.5, 26, 18.5);
-    // Side cozy meadow boundary fences
-    addFenceRun(-26, 18.5, -26, -24);
-    addFenceRun(26, 18.5, 26, -24);
+    // Side cozy meadow boundary fences (with wide West & East wilderness trail gateways at Z in [-3.5, 3.5]!)
+    addFenceRun(-26, 18.5, -26, 3.5);
+    addFenceRun(-26, -3.5, -26, -24);
+    addFenceRun(26, 18.5, 26, 3.5);
+    addFenceRun(26, -3.5, 26, -24);
 
     // 2. Vegetable Garden low cozy border fences (open East entrance & North opening)
     addFenceRun(-14.6, 11.8, -4.4, 11.8, 0.85);

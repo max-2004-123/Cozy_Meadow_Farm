@@ -289,6 +289,68 @@ export class Viewmodel {
     feed.rotation.set(0.32, -0.25, 0.06);
     this.meshes.set('animal_feed', feed);
 
+    // 4b. Bamboo Fishing Rod with cork grip, brass reel & bobber tip!
+    const rod = new THREE.Group();
+    const bambooMat = new THREE.MeshStandardMaterial({ color: '#c89b54', roughness: 0.72 });
+    const corkMat = new THREE.MeshStandardMaterial({ color: '#a87442', roughness: 0.9 });
+    const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.019, 0.022, 0.2, 10), corkMat);
+    grip.position.y = -0.18;
+    rod.add(grip);
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.015, 0.95, 10), bambooMat);
+    pole.position.y = 0.36;
+    rod.add(pole);
+    const reel = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.028, 12), brassRingMat);
+    reel.rotation.z = Math.PI / 2;
+    reel.position.set(0.025, -0.06, -0.02);
+    rod.add(reel);
+    for (const ey of [0.15, 0.45, 0.78]) {
+      const eyelet = new THREE.Mesh(new THREE.TorusGeometry(0.014, 0.003, 5, 10), ironMat);
+      eyelet.position.set(0, ey, -0.018);
+      rod.add(eyelet);
+    }
+    rod.rotation.set(-0.62, -0.22, 0.14);
+    rod.position.set(0.04, -0.05, -0.06);
+    this.meshes.set('fishing_rod', rod);
+
+    // 4c. Woodland Recurve Hunting Bow with taut string & nocked feathered arrow!
+    const bow = new THREE.Group();
+    const bowCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0, -0.34, 0.06),
+      new THREE.Vector3(0, -0.18, -0.05),
+      new THREE.Vector3(0, 0, -0.09),
+      new THREE.Vector3(0, 0.18, -0.05),
+      new THREE.Vector3(0, 0.34, 0.06),
+    ]);
+    const limbs = new THREE.Mesh(new THREE.TubeGeometry(bowCurve, 16, 0.014, 7, false), woodMat);
+    bow.add(limbs);
+    const bowGrip = new THREE.Mesh(new THREE.CylinderGeometry(0.019, 0.019, 0.11, 8), leatherMat);
+    bowGrip.position.set(0, 0, -0.09);
+    bow.add(bowGrip);
+    const bowString = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.0025, 0.0025, 0.68, 5),
+      new THREE.MeshBasicMaterial({ color: '#f2e8d5' })
+    );
+    bowString.position.set(0, 0, 0.06);
+    bow.add(bowString);
+    // Nocked wooden arrow with red fletching & iron arrowhead
+    const arrowShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.48, 6), bambooMat);
+    arrowShaft.rotation.x = Math.PI / 2;
+    arrowShaft.position.set(0.015, 0.01, -0.14);
+    bow.add(arrowShaft);
+    const arrowTip = new THREE.Mesh(new THREE.ConeGeometry(0.016, 0.05, 5), edgeMat);
+    arrowTip.rotation.x = -Math.PI / 2;
+    arrowTip.position.set(0.015, 0.01, -0.39);
+    bow.add(arrowTip);
+    const fletch = new THREE.Mesh(
+      new THREE.BoxGeometry(0.032, 0.016, 0.075),
+      new THREE.MeshStandardMaterial({ color: '#e85d4c', roughness: 0.7 })
+    );
+    fletch.position.set(0.015, 0.01, 0.06);
+    bow.add(fletch);
+    bow.rotation.set(0.06, -0.18, -0.15);
+    bow.position.set(-0.02, 0.02, -0.04);
+    this.meshes.set('hunting_bow', bow);
+
     // 5. Harvested Crops & Animal Products (initial procedural models, upgraded to Kenney GLBs when loaded!)
     this.buildHarvestHoldModels();
   }

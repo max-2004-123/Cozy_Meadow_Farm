@@ -7,6 +7,8 @@ export type AnimalSpecies = 'chicken' | 'cow' | 'sheep' | 'pig';
 export type ItemId =
   | 'hoe'
   | 'watering_can'
+  | 'fishing_rod'
+  | 'hunting_bow'
   | 'seed_carrot'
   | 'seed_radish'
   | 'seed_tomato'
@@ -19,9 +21,17 @@ export type ItemId =
   | 'prod_egg'
   | 'prod_milk'
   | 'prod_wool'
-  | 'prod_truffle';
+  | 'prod_truffle'
+  | 'fish_carp'
+  | 'fish_trout'
+  | 'fish_salmon'
+  | 'fish_koi'
+  | 'hunt_pelt'
+  | 'hunt_meat'
+  | 'hunt_venison'
+  | 'hunt_antler';
 
-export type ItemCategory = 'tool' | 'seed' | 'feed' | 'crop' | 'product';
+export type ItemCategory = 'tool' | 'seed' | 'feed' | 'crop' | 'product' | 'fish' | 'hunt';
 
 export interface ItemDefinition {
   id: ItemId;
@@ -55,7 +65,7 @@ export interface InteractionInfo {
   actionText: string;
   hintText?: string;
   canAct: boolean;
-  iconId?: ItemId | 'water' | 'heart' | 'sparkle' | 'basket' | 'crate';
+  iconId?: ItemId | 'water' | 'heart' | 'sparkle' | 'basket' | 'crate' | 'door' | 'hammer' | 'moon';
   progress?: number; // 0..1 for crop growth
   progressLabel?: string;
   moisture?: number; // 0..1 for soil moisture

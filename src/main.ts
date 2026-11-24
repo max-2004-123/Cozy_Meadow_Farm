@@ -7,6 +7,10 @@ import { SkyAndLighting } from './world/SkyAndLighting';
 import { FarmWorld } from './world/FarmWorld';
 import { WorldEnhancer } from './world/WorldEnhancer';
 import { CozyDetails } from './world/CozyDetails';
+import { WildernessExpansion } from './world/WildernessExpansion';
+import { BuildingInteriors } from './world/BuildingInteriors';
+import { FishingSystem } from './gameplay/FishingSystem';
+import { HuntingSystem } from './gameplay/HuntingSystem';
 import { getFarmTextures } from './assets/textures';
 import { ParticleSystem } from './effects/ParticleSystem';
 import { PostEffects } from './effects/PostEffects';
@@ -36,6 +40,10 @@ class CozyFarmGame {
   private world: FarmWorld;
   private worldEnhancer: WorldEnhancer;
   private cozyDetails: CozyDetails;
+  private wilderness: WildernessExpansion;
+  private interiors: BuildingInteriors;
+  private fishing: FishingSystem;
+  private hunting: HuntingSystem;
   private garden: GardenSystem;
   private animals: AnimalSystem;
   private viewmodel: Viewmodel;
@@ -70,6 +78,7 @@ class CozyFarmGame {
     this.world = new FarmWorld(this.scene, this.collisions, this.sky, this.particles);
     this.worldEnhancer = new WorldEnhancer(this.scene, this.collisions);
     this.cozyDetails = new CozyDetails(this.scene, getFarmTextures(), this.collisions);
+    this.wilderness = new WildernessExpansion(this.scene, getFarmTextures(), this.collisions, this.sky);
 
     this.viewmodel = new Viewmodel(this.camera);
 
@@ -131,6 +140,41 @@ class CozyFarmGame {
       onToolSwing: (action) => this.viewmodel.triggerAction(action),
     });
 
+    this.interiors = new BuildingInteriors(
+      this.world.farmhouseGroup,
+      this.world.farmhouseDoorPivot,
+      this.world.barnGroup,
+      this.world.barnDoorLeftPivot,
+      this.world.barnDoorRightPivot,
+      getFarmTextures(),
+      this.inventory,
+      this.particles,
+      this.sound,
+      this.tasks,
+      {
+        onToast: (t, tone) => this.ui.showToast(t, tone),
+        onSleepMorning: () => this.sky.setTimePreset('morning'),
+      }
+    );
+
+    this.fishing = new FishingSystem(this.scene, this.inventory, this.particles, this.sound, this.tasks, {
+      onToast: (t, tone) => this.ui.showToast(t, tone),
+      onToolSwing: (action) => this.viewmodel.triggerAction(action),
+    });
+
+    this.hunting = new HuntingSystem(
+      this.scene,
+      this.inventory,
+      this.particles,
+      this.sound,
+      this.tasks,
+      this.wilderness.archeryTargets,
+      {
+        onToast: (t, tone) => this.ui.showToast(t, tone),
+        onToolSwing: (action) => this.viewmodel.triggerAction(action),
+      }
+    );
+
     this.setupWorldInteractables();
 
     // First-person player controller
@@ -143,8 +187,18 @@ class CozyFarmGame {
         }
       },
       onInteract: () => {
+        // Priority 1: Active fishing cast/reel when holding Fishing Rod near water!
+        if (this.fishing.tryCastOrReel(this.player.position, this.camera)) {
+          return;
+        }
+        // Priority 2: Direct world/interior/garden/animal interactable!
         if (this.player.currentTarget) {
           this.player.currentTarget.interact();
+          return;
+        }
+        // Priority 3: Shoot arrow when holding Hunting Bow!
+        if (this.hunting.tryShoot(this.camera)) {
+          return;
         }
       },
     });
@@ -384,13 +438,18 @@ class CozyFarmGame {
     this.world.update(dt, this.elapsed, this.sky.nightFactor);
     this.worldEnhancer.update(this.elapsed);
     this.cozyDetails.update(this.elapsed, this.sky.nightFactor);
+    this.wilderness.update(dt, this.elapsed, this.sky.nightFactor);
+    this.interiors.update(dt, this.elapsed);
     this.garden.update(dt, this.elapsed);
     this.animals.update(dt, this.elapsed, this.player.position);
+    this.fishing.update(dt, this.elapsed, this.player.position, this.camera);
+    this.hunting.update(dt, this.elapsed, this.player.position);
     this.particles.update(dt, this.elapsed, this.sky.nightFactor);
 
     const allInteractables: InteractableTarget[] = [
       ...this.garden.interactables,
       ...this.animals.interactables,
+      ...this.interiors.interactables,
       ...this.worldInteractables,
     ];
 
@@ -398,18 +457,26 @@ class CozyFarmGame {
     this.player.update(dt, this.elapsed, allowMove, allInteractables, this.animals.getDynamicColliders());
     this.viewmodel.update(dt, this.elapsed, this.player.moveSpeedFactor);
 
-    // Highlight hovered garden plot & show center interaction card
+    // Highlight hovered garden plot & show center interaction card (prefer active Fishing HUD near water!)
     const target = this.player.currentTarget;
     this.garden.setHoveredTarget(target && target.id.startsWith('plot_') ? target.id : null);
-    this.ui.updateInteraction(target ? target.getInfo() : null);
+    const fishingHud = this.fishing.getHudInfo(this.player.position);
+    this.ui.updateInteraction(fishingHud ?? (target ? target.getInfo() : null));
 
-    // Update time HUD & spatial soundscape
+    // Update time HUD & spatial soundscape (Duck Pond + Emerald Lake!)
     this.ui.updateTime(this.sky.getTimeInfo(), this.sky.timeSpeedMultiplier);
     const distToPond = Math.hypot(
       this.player.position.x - WORLD_CONFIG.pondCenter.x,
       this.player.position.z - WORLD_CONFIG.pondCenter.z
     );
-    this.sound.update(dt, this.elapsed, this.sky.nightFactor, distToPond);
+    const distToLake = Math.max(
+      0,
+      Math.hypot(
+        this.player.position.x - WORLD_CONFIG.lakeCenter.x,
+        this.player.position.z - WORLD_CONFIG.lakeCenter.z
+      ) - 14
+    );
+    this.sound.update(dt, this.elapsed, this.sky.nightFactor, Math.min(distToPond, distToLake));
 
     // Dreamy Bloom + Sun Lens Glow + Cozy Color Grading post-processing render!
     this.postEffects.update(

@@ -1,6 +1,18 @@
 import { ItemId } from '../types';
 
-export type IconKey = ItemId | 'water' | 'heart' | 'sparkle' | 'basket' | 'crate' | 'coin' | 'sun' | 'moon' | 'sunset';
+export type IconKey =
+  | ItemId
+  | 'water'
+  | 'heart'
+  | 'sparkle'
+  | 'basket'
+  | 'crate'
+  | 'coin'
+  | 'sun'
+  | 'moon'
+  | 'sunset'
+  | 'door'
+  | 'hammer';
 
 export const ITEM_ICONS: Record<IconKey, string> = {
   hoe: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -163,6 +175,80 @@ export const ITEM_ICONS: Record<IconKey, string> = {
     <path d="M31 12C22 12 15 19 15 27.5C15 33.5 19.8 38 26 38C31.5 38 35.8 34.5 37 29.5C32.5 31 27 28 26 23C25 18 27.5 14 31 12Z" fill="#FFE8A3" stroke="#C59C3C" stroke-width="2.2" stroke-linejoin="round"/>
     <circle cx="35" cy="15" r="2" fill="#FFF3C4"/>
     <circle cx="14" cy="14" r="1.4" fill="#FFF3C4"/>
+  </svg>`,
+
+  fishing_rod: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10 39C14 28 22 16 34 10" stroke="#A6743D" stroke-width="3.6" stroke-linecap="round"/>
+    <path d="M34 10C37 16 37 24 35 31" stroke="#62B6DC" stroke-width="1.8" stroke-dasharray="2 2"/>
+    <circle cx="35" cy="33" r="3.6" fill="#EB584A" stroke="#7A241C" stroke-width="1.5"/>
+    <path d="M31.5 33H38.5" stroke="#FFFFFF" stroke-width="1.8"/>
+    <circle cx="16" cy="31" r="3.5" fill="#E3BC61" stroke="#8C6B28" stroke-width="1.6"/>
+  </svg>`,
+
+  hunting_bow: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16 10C29 14 29 34 16 38" stroke="#A8693B" stroke-width="3.8" stroke-linecap="round"/>
+    <path d="M16 10L16 38" stroke="#E5D8C0" stroke-width="1.8"/>
+    <path d="M11 24H37" stroke="#8F5732" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M34 20L39 24L34 28" fill="#8C99A6" stroke="#4F5A66" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M10 21L14 24L10 27" stroke="#E86A5A" stroke-width="2" stroke-linecap="round"/>
+  </svg>`,
+
+  fish_carp: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 24C16 15 27 15 34 22L40 16V32L34 26C27 33 16 33 12 24Z" fill="#F5B84C" stroke="#B2761B" stroke-width="2.2" stroke-linejoin="round"/>
+    <circle cx="18" cy="22" r="2" fill="#2E231D"/>
+    <path d="M23 19C25 22 25 26 23 29" stroke="#FFE19E" stroke-width="2" stroke-linecap="round"/>
+  </svg>`,
+
+  fish_trout: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10 24C15 16 27 16 34 22L40 17V31L34 26C27 32 15 32 10 24Z" fill="#63BCA8" stroke="#317869" stroke-width="2.2" stroke-linejoin="round"/>
+    <circle cx="17" cy="22" r="2" fill="#23302E"/>
+    <circle cx="24" cy="22" r="1.4" fill="#D4F5EC"/>
+    <circle cx="28" cy="25" r="1.4" fill="#D4F5EC"/>
+  </svg>`,
+
+  fish_salmon: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10 24C15 15 28 15 35 22L41 16V32L35 26C28 33 15 33 10 24Z" fill="#EE8373" stroke="#A6463B" stroke-width="2.2" stroke-linejoin="round"/>
+    <circle cx="17" cy="22" r="2" fill="#2E201D"/>
+    <path d="M22 24H31" stroke="#FFC7BE" stroke-width="2.2" stroke-linecap="round"/>
+  </svg>`,
+
+  fish_koi: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10 24C15 14 28 15 34 22L41 15V33L34 26C28 33 15 34 10 24Z" fill="#FFF7EB" stroke="#C9647E" stroke-width="2.2" stroke-linejoin="round"/>
+    <circle cx="23" cy="22" r="4.5" fill="#FF7CA3"/>
+    <circle cx="16" cy="22" r="2" fill="#2E201D"/>
+    <circle cx="30" cy="26" r="2.6" fill="#FFD159"/>
+  </svg>`,
+
+  hunt_pelt: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M14 14C19 11 29 11 34 14L38 22L34 36C29 38 19 38 14 36L10 22L14 14Z" fill="#D4B08C" stroke="#8C6643" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M19 19C22 17 26 17 29 19" stroke="#F5DFC8" stroke-width="2.2" stroke-linecap="round"/>
+  </svg>`,
+
+  hunt_meat: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="24" cy="25" rx="13" ry="10" fill="#D66151" stroke="#8C3226" stroke-width="2.2"/>
+    <circle cx="28" cy="24" r="3.4" fill="#FFF7EA" stroke="#C4B39B" stroke-width="1.6"/>
+    <path d="M16 22C18 19 22 18 25 19" stroke="#F7A79B" stroke-width="2" stroke-linecap="round"/>
+  </svg>`,
+
+  hunt_venison: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 27C12 19 19 14 28 15C34 16 37 21 36 27C35 33 28 36 21 35C15 34 12 31 12 27Z" fill="#BA4E45" stroke="#7A2721" stroke-width="2.2"/>
+    <circle cx="28" cy="24" r="3.2" fill="#FFF4E4" stroke="#BFA98E" stroke-width="1.6"/>
+  </svg>`,
+
+  hunt_antler: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M24 38C20 31 14 24 12 14M17 26L10 22M14 20L19 15" stroke="#DEC9A4" stroke-width="3.4" stroke-linecap="round"/>
+    <path d="M24 38C28 31 34 24 36 14M31 26L38 22M34 20L29 15" stroke="#DEC9A4" stroke-width="3.4" stroke-linecap="round"/>
+  </svg>`,
+
+  door: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="13" y="8" width="22" height="32" rx="3" fill="#B87A4B" stroke="#704625" stroke-width="2.4"/>
+    <circle cx="30" cy="25" r="2.3" fill="#F5D06B"/>
+    <circle cx="24" cy="16" r="4" fill="#FFEAA7" stroke="#85562E" stroke-width="1.6"/>
+  </svg>`,
+
+  hammer: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M14 36L28 22" stroke="#B57A46" stroke-width="4.4" stroke-linecap="round"/>
+    <path d="M22 14L34 26L38 22L26 10L22 14Z" fill="#8C99A6" stroke="#4F5A66" stroke-width="2.2" stroke-linejoin="round"/>
   </svg>`,
 };
 

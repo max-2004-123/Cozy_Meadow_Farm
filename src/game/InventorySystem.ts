@@ -15,6 +15,8 @@ export class InventorySystem {
   private counts: Record<ItemId, number> = {
     hoe: 1,
     watering_can: 1,
+    fishing_rod: 1,
+    hunting_bow: 1,
     seed_carrot: 8,
     seed_radish: 6,
     seed_tomato: 6,
@@ -28,6 +30,14 @@ export class InventorySystem {
     prod_milk: 0,
     prod_wool: 0,
     prod_truffle: 0,
+    fish_carp: 0,
+    fish_trout: 0,
+    fish_salmon: 0,
+    fish_koi: 0,
+    hunt_pelt: 0,
+    hunt_meat: 0,
+    hunt_venison: 0,
+    hunt_antler: 0,
   };
 
   private listeners: (() => void)[] = [];
@@ -76,13 +86,18 @@ export class InventorySystem {
 
   public addItem(id: ItemId, amount = 1): void {
     this.counts[id] = (this.counts[id] ?? 0) + amount;
-    // Automatically show newly collected crop or animal product in hotbar slots 8/9 if currently empty
-    const cat = ITEMS[id].category;
-    if (cat === 'crop' && this.getCount(this.hotbar[7]) === 0) {
-      this.hotbar[7] = id;
-    } else if (cat === 'product' && this.getCount(this.hotbar[8]) === 0) {
-      this.hotbar[8] = id;
-    }
+    this.emit();
+  }
+
+  public spendCoins(amount: number): boolean {
+    if (this.coins < amount) return false;
+    this.coins -= amount;
+    this.emit();
+    return true;
+  }
+
+  public addCoins(amount: number): void {
+    this.coins += amount;
     this.emit();
   }
 
@@ -145,6 +160,14 @@ export class InventorySystem {
       'prod_milk',
       'prod_wool',
       'prod_truffle',
+      'fish_carp',
+      'fish_trout',
+      'fish_salmon',
+      'fish_koi',
+      'hunt_pelt',
+      'hunt_meat',
+      'hunt_venison',
+      'hunt_antler',
     ];
     return harvestIds.map((id) => ({ id, count: this.counts[id] }));
   }
