@@ -543,4 +543,31 @@ export class SoundManager {
     osc.start(now);
     osc.stop(now + 0.095);
   }
+
+  public playHorn(): void {
+    if (!this.ctx || !this.sfxGain || this.muted) return;
+    const now = this.ctx.currentTime;
+    // Cheerful vintage double-tone farm truck "Beep-Beep!"
+    for (let b = 0; b < 2; b++) {
+      const start = now + b * 0.16;
+      for (const freq of [392, 493.88]) {
+        const osc = this.ctx.createOscillator();
+        const filter = this.ctx.createBiquadFilter();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, start);
+        filter.type = 'lowpass';
+        filter.frequency.value = 1100;
+        gain.gain.setValueAtTime(0.001, start);
+        gain.gain.linearRampToValueAtTime(0.11, start + 0.015);
+        gain.gain.setValueAtTime(0.1, start + 0.09);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.125);
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.sfxGain);
+        osc.start(start);
+        osc.stop(start + 0.13);
+      }
+    }
+  }
 }

@@ -65,7 +65,7 @@ export interface InteractionInfo {
   actionText: string;
   hintText?: string;
   canAct: boolean;
-  iconId?: ItemId | 'water' | 'heart' | 'sparkle' | 'basket' | 'crate' | 'door' | 'hammer' | 'moon';
+  iconId?: ItemId | 'water' | 'heart' | 'sparkle' | 'basket' | 'crate' | 'door' | 'hammer' | 'moon' | 'truck';
   progress?: number; // 0..1 for crop growth
   progressLabel?: string;
   moisture?: number; // 0..1 for soil moisture

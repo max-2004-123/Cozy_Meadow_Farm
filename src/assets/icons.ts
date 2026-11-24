@@ -12,7 +12,8 @@ export type IconKey =
   | 'moon'
   | 'sunset'
   | 'door'
-  | 'hammer';
+  | 'hammer'
+  | 'truck';
 
 export const ITEM_ICONS: Record<IconKey, string> = {
   hoe: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -249,6 +250,15 @@ export const ITEM_ICONS: Record<IconKey, string> = {
   hammer: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M14 36L28 22" stroke="#B57A46" stroke-width="4.4" stroke-linecap="round"/>
     <path d="M22 14L34 26L38 22L26 10L22 14Z" fill="#8C99A6" stroke="#4F5A66" stroke-width="2.2" stroke-linejoin="round"/>
+  </svg>`,
+
+  truck: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M7 28V20H21L26 14H36L40 21V28H7Z" fill="#6EC4B4" stroke="#36756A" stroke-width="2.2" stroke-linejoin="round"/>
+    <rect x="26" y="16.5" width="8.5" height="5.5" rx="1.2" fill="#E0F6FF" stroke="#36756A" stroke-width="1.5"/>
+    <circle cx="15" cy="30" r="5" fill="#3B4248" stroke="#22272B" stroke-width="2"/>
+    <circle cx="15" cy="30" r="2" fill="#FFF6E0"/>
+    <circle cx="34" cy="30" r="5" fill="#3B4248" stroke="#22272B" stroke-width="2"/>
+    <circle cx="34" cy="30" r="2" fill="#FFF6E0"/>
   </svg>`,
 };
 

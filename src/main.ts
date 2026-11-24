@@ -11,6 +11,7 @@ import { WildernessExpansion } from './world/WildernessExpansion';
 import { BuildingInteriors } from './world/BuildingInteriors';
 import { FishingSystem } from './gameplay/FishingSystem';
 import { HuntingSystem } from './gameplay/HuntingSystem';
+import { VehicleSystem } from './gameplay/VehicleSystem';
 import { getFarmTextures } from './assets/textures';
 import { ParticleSystem } from './effects/ParticleSystem';
 import { PostEffects } from './effects/PostEffects';
@@ -44,6 +45,7 @@ class CozyFarmGame {
   private interiors: BuildingInteriors;
   private fishing: FishingSystem;
   private hunting: HuntingSystem;
+  private vehicle: VehicleSystem;
   private garden: GardenSystem;
   private animals: AnimalSystem;
   private viewmodel: Viewmodel;
@@ -175,6 +177,25 @@ class CozyFarmGame {
       }
     );
 
+    this.vehicle = new VehicleSystem(
+      this.scene,
+      this.collisions,
+      this.sky,
+      this.sound,
+      this.particles,
+      {
+        onToast: (t, tone) => this.ui.showToast(t, tone),
+        onDriveStateChange: (driving) => {
+          this.player.externalDriving = driving;
+          this.viewmodel.root.visible = !driving;
+          if (driving) {
+            // Face cleanly out the front windshield (+Z local = heading + PI in Three.js -Z camera)
+            this.player.setYaw(this.vehicle.heading + Math.PI);
+          }
+        },
+      }
+    );
+
     this.setupWorldInteractables();
 
     // First-person player controller
@@ -187,11 +208,15 @@ class CozyFarmGame {
         }
       },
       onInteract: () => {
+        if (this.vehicle.isDriving) {
+          this.vehicle.exitTruck(this.player.position);
+          return;
+        }
         // Priority 1: Active fishing cast/reel when holding Fishing Rod near water!
         if (this.fishing.tryCastOrReel(this.player.position, this.camera)) {
           return;
         }
-        // Priority 2: Direct world/interior/garden/animal interactable!
+        // Priority 2: Direct world/interior/garden/animal/vehicle interactable!
         if (this.player.currentTarget) {
           this.player.currentTarget.interact();
           return;
@@ -403,6 +428,14 @@ class CozyFarmGame {
           this.sky.timeSpeedMultiplier === 1 ? 'Time speed: Normal (1×)' : 'Time speed: Brisk Breeze (5×)',
           'info'
         );
+      } else if (e.code === 'KeyF') {
+        if (!this.ui.isMenuVisible && !this.ui.isInventoryOpen) {
+          if (this.vehicle.isDriving) {
+            this.vehicle.exitTruck(this.player.position);
+          } else if (this.player.position.distanceTo(this.vehicle.position) < 5.2) {
+            this.vehicle.enterTruck();
+          }
+        }
       } else if (e.code === 'Escape' || e.code === 'KeyP') {
         if (this.ui.isInventoryOpen) {
           this.ui.setInventoryOpen(false);
@@ -450,18 +483,35 @@ class CozyFarmGame {
       ...this.garden.interactables,
       ...this.animals.interactables,
       ...this.interiors.interactables,
+      ...this.vehicle.interactables,
       ...this.worldInteractables,
     ];
 
     const allowMove = !this.ui.isMenuVisible && !this.ui.isInventoryOpen;
-    this.player.update(dt, this.elapsed, allowMove, allInteractables, this.animals.getDynamicColliders());
+    const dynColliders = this.animals.getDynamicColliders();
+    const truckCol = this.vehicle.getDynamicCollider();
+    if (truckCol) dynColliders.push(truckCol);
+
+    const truckTurnDelta = this.vehicle.update(
+      dt,
+      this.sky.nightFactor,
+      allowMove,
+      (code) => this.player.isKeyDown(code),
+      this.player.position,
+      this.animals.getDynamicColliders()
+    );
+    if (truckTurnDelta !== 0) {
+      this.player.setYaw(this.player.yaw + truckTurnDelta);
+    }
+    this.player.update(dt, this.elapsed, allowMove, allInteractables, dynColliders);
     this.viewmodel.update(dt, this.elapsed, this.player.moveSpeedFactor);
 
-    // Highlight hovered garden plot & show center interaction card (prefer active Fishing HUD near water!)
+    // Highlight hovered garden plot & show center interaction card (prefer Driving / Fishing HUD!)
     const target = this.player.currentTarget;
     this.garden.setHoveredTarget(target && target.id.startsWith('plot_') ? target.id : null);
+    const drivingHud = this.vehicle.getDrivingHudInfo();
     const fishingHud = this.fishing.getHudInfo(this.player.position);
-    this.ui.updateInteraction(fishingHud ?? (target ? target.getInfo() : null));
+    this.ui.updateInteraction(drivingHud ?? fishingHud ?? (target ? target.getInfo() : null));
 
     // Update time HUD & spatial soundscape (Duck Pond + Emerald Lake!)
     this.ui.updateTime(this.sky.getTimeInfo(), this.sky.timeSpeedMultiplier);

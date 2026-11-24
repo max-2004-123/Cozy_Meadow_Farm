@@ -21,6 +21,7 @@ export class PlayerController {
 
   public isLocked = false;
   public isSprinting = false;
+  public externalDriving = false;
   public moveSpeedFactor = 0;
   public sensitivityMultiplier = 1.0;
 
@@ -96,6 +97,16 @@ export class PlayerController {
     this.targetPitch = -0.06;
   }
 
+  public isKeyDown(code: string): boolean {
+    return this.keys.has(code);
+  }
+
+  public setYaw(yaw: number): void {
+    this.yaw = yaw;
+    this.targetYaw = yaw;
+    this.camera.rotation.y = yaw;
+  }
+
   public requestLock(): void {
     this.sound.init();
     if (document.pointerLockElement === this.domElement) return;
@@ -162,7 +173,7 @@ export class PlayerController {
       if (this.allowGameplay && e.code === 'KeyC') {
         this.recenterView();
       }
-      if (this.allowGameplay && e.code === 'Space' && this.isGrounded) {
+      if (this.allowGameplay && !this.externalDriving && e.code === 'Space' && this.isGrounded) {
         this.velY = 5.4;
         this.isGrounded = false;
       }
@@ -300,6 +311,15 @@ export class PlayerController {
     dynamicColliders?: { x: number; z: number; radius: number }[]
   ): void {
     this.allowGameplay = allowMovement;
+
+    if (this.externalDriving) {
+      this.moveSpeedFactor = 0;
+      this.currentTarget = null;
+      this.camera.position.copy(this.position);
+      this.camera.rotation.y = this.yaw;
+      this.camera.rotation.x = this.pitch;
+      return;
+    }
 
     let moveForward = 0;
     let moveRight = 0;
