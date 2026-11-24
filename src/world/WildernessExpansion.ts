@@ -317,9 +317,10 @@ export class WildernessExpansion {
     const addPine = (x: number, z: number, s: number, idx: number) => {
       const p = new THREE.Group();
       p.position.set(x, 0, z);
+      const nearFarm = Math.abs(x) < 48 && Math.abs(z) < 30;
       const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.22 * s, 0.34 * s, 2.2 * s, 7), trunkMat);
       trunk.position.y = 1.1 * s;
-      trunk.castShadow = true;
+      trunk.castShadow = nearFarm;
       p.add(trunk);
       const mat = pineMats[idx % pineMats.length];
       for (let tier = 0; tier < 3; tier++) {
@@ -328,8 +329,8 @@ export class WildernessExpansion {
           mat
         );
         cone.position.y = (2.6 + tier * 1.45) * s;
-        cone.castShadow = true;
-        cone.receiveShadow = true;
+        cone.castShadow = nearFarm;
+        cone.receiveShadow = nearFarm;
         p.add(cone);
       }
       this.group.add(p);
@@ -447,16 +448,17 @@ export class WildernessExpansion {
     birchSpots.forEach(([x, z, s], idx) => {
       const t = new THREE.Group();
       t.position.set(x, 0, z);
+      const nearFarm = Math.abs(x) < 48 && Math.abs(z) < 30;
       const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18 * s, 0.28 * s, 2.8 * s, 7), birchTrunk);
       trunk.position.y = 1.4 * s;
-      trunk.castShadow = true;
+      trunk.castShadow = nearFarm;
       t.add(trunk);
       const lm = leafMats[idx % leafMats.length];
       for (const [px, py, pz, pr] of [[0, 3.4, 0, 1.5], [-0.85, 2.9, 0.4, 1.05], [0.85, 2.95, -0.35, 1.1]] as [number, number, number, number][]) {
         const puff = new THREE.Mesh(puffGeo, lm);
         puff.position.set(px * s, py * s, pz * s);
         puff.scale.set(pr * s, pr * 0.86 * s, pr * s);
-        puff.castShadow = true;
+        puff.castShadow = nearFarm;
         t.add(puff);
       }
       this.group.add(t);

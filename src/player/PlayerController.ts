@@ -92,6 +92,7 @@ export class PlayerController {
   }
 
   public recenterView(): void {
+    this.pitch = -0.06;
     this.targetPitch = -0.06;
   }
 
@@ -176,29 +177,33 @@ export class PlayerController {
       this.activePointerId = null;
     });
 
-    // Pointer-lock mouse look (calm sensitivity + Windows Chromium spike/warp guard!)
+    // Pointer-lock mouse look: crisp 1:1 immediate tracking (zero lag behind mouse!)
     document.addEventListener('mousemove', (e) => {
       if (!this.isLocked || !this.allowGameplay) return;
 
-      // Ignore spurious jump events fired immediately when pointer lock engages
-      if (performance.now() - this.lockTimestamp < 90) return;
+      // Ignore the single spurious jump fired immediately when pointer lock engages
+      if (performance.now() - this.lockTimestamp < 50) return;
 
       const mx = e.movementX;
       const my = e.movementY;
 
-      // Reject abnormal Windows Chromium cursor-warp spikes (prevents sudden slam to the floor!)
-      if (Math.abs(mx) > 150 || Math.abs(my) > 150) return;
+      // Only reject true OS cursor-warp anomalies (> 450px in one event), never normal fast flicks!
+      if (Math.abs(mx) > 450 || Math.abs(my) > 450) return;
 
-      const clampedX = THREE.MathUtils.clamp(mx, -60, 60);
-      const clampedY = THREE.MathUtils.clamp(my, -60, 60);
-      const sensitivity = 0.00085 * this.sensitivityMultiplier;
+      const clampedX = THREE.MathUtils.clamp(mx, -240, 240);
+      const clampedY = THREE.MathUtils.clamp(my, -240, 240);
+      const sensitivity = 0.0018 * this.sensitivityMultiplier;
 
-      this.targetYaw -= clampedX * sensitivity;
-      this.targetPitch = THREE.MathUtils.clamp(
-        this.targetPitch - clampedY * sensitivity,
+      this.yaw -= clampedX * sensitivity;
+      this.pitch = THREE.MathUtils.clamp(
+        this.pitch - clampedY * sensitivity,
         MIN_PITCH,
         MAX_PITCH
       );
+      this.targetYaw = this.yaw;
+      this.targetPitch = this.pitch;
+      this.camera.rotation.y = this.yaw;
+      this.camera.rotation.x = this.pitch;
     });
 
     // Unified Pointer events for unlocked drag-look & interaction (never gets trapped at bottom edge or over HUD!)
@@ -215,6 +220,10 @@ export class PlayerController {
       }
 
       if (e.button === 0 || e.button === 2) {
+        // Attempt pointer lock cleanly on left-click into the canvas; if blocked, drag-look handles it seamlessly
+        if (e.button === 0 && e.target === this.domElement) {
+          this.requestLock();
+        }
         this.activePointerId = e.pointerId;
         this.pointerButton = e.button;
         this.dragStartX = e.clientX;
@@ -240,16 +249,20 @@ export class PlayerController {
       this.lastDragY = e.clientY;
       this.draggedDistance += Math.hypot(dx, dy);
 
-      const clampedDx = THREE.MathUtils.clamp(dx, -70, 70);
-      const clampedDy = THREE.MathUtils.clamp(dy, -70, 70);
-      const dragSensitivity = 0.002 * this.sensitivityMultiplier;
+      const clampedDx = THREE.MathUtils.clamp(dx, -240, 240);
+      const clampedDy = THREE.MathUtils.clamp(dy, -240, 240);
+      const dragSensitivity = 0.0038 * this.sensitivityMultiplier;
 
-      this.targetYaw -= clampedDx * dragSensitivity;
-      this.targetPitch = THREE.MathUtils.clamp(
-        this.targetPitch - clampedDy * dragSensitivity,
+      this.yaw -= clampedDx * dragSensitivity;
+      this.pitch = THREE.MathUtils.clamp(
+        this.pitch - clampedDy * dragSensitivity,
         MIN_PITCH,
         MAX_PITCH
       );
+      this.targetYaw = this.yaw;
+      this.targetPitch = this.pitch;
+      this.camera.rotation.y = this.yaw;
+      this.camera.rotation.x = this.pitch;
     });
 
     const endDrag = (e: PointerEvent) => {
@@ -297,22 +310,19 @@ export class PlayerController {
       if (this.keys.has('KeyD')) moveRight += 1;
       if (this.keys.has('KeyA')) moveRight -= 1;
 
-      // Smooth keyboard camera look (yaw + pitch)
-      const keyLookSpeed = 1.65 * Math.max(0.55, Math.min(1.4, this.sensitivityMultiplier));
-      if (this.keys.has('ArrowLeft')) this.targetYaw += dt * keyLookSpeed;
-      if (this.keys.has('ArrowRight')) this.targetYaw -= dt * keyLookSpeed;
+      // Direct keyboard camera look (yaw + pitch)
+      const keyLookSpeed = 1.9 * Math.max(0.55, Math.min(1.5, this.sensitivityMultiplier));
+      if (this.keys.has('ArrowLeft')) this.yaw += dt * keyLookSpeed;
+      if (this.keys.has('ArrowRight')) this.yaw -= dt * keyLookSpeed;
       if (this.keys.has('ArrowUp')) {
-        this.targetPitch = THREE.MathUtils.clamp(this.targetPitch + dt * keyLookSpeed * 0.78, MIN_PITCH, MAX_PITCH);
+        this.pitch = THREE.MathUtils.clamp(this.pitch + dt * keyLookSpeed * 0.78, MIN_PITCH, MAX_PITCH);
       }
       if (this.keys.has('ArrowDown')) {
-        this.targetPitch = THREE.MathUtils.clamp(this.targetPitch - dt * keyLookSpeed * 0.78, MIN_PITCH, MAX_PITCH);
+        this.pitch = THREE.MathUtils.clamp(this.pitch - dt * keyLookSpeed * 0.78, MIN_PITCH, MAX_PITCH);
       }
+      this.targetYaw = this.yaw;
+      this.targetPitch = this.pitch;
     }
-
-    // Crisp exponential micro-smoothing (zero lag feel, zero jagged jumps!)
-    const smoothFactor = 1 - Math.exp(-32 * dt);
-    this.yaw += (this.targetYaw - this.yaw) * smoothFactor;
-    this.pitch += (this.targetPitch - this.pitch) * smoothFactor;
 
     const inputLen = Math.hypot(moveForward, moveRight);
     this.isSprinting = allowMovement && (this.keys.has('ShiftLeft') || this.keys.has('ShiftRight')) && inputLen > 0;
