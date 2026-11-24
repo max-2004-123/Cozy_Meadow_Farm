@@ -493,171 +493,508 @@ export class BuildingInteriors {
   }
 
   private populateFurnitureMesh(root: THREE.Group, kind: FurnitureKind): THREE.Mesh[] {
-    const woodMat = new THREE.MeshStandardMaterial({ map: this.textures.woodWarm, roughness: 0.84 });
-    const lightWood = new THREE.MeshStandardMaterial({ map: this.textures.woodLight, roughness: 0.82 });
-    const ironMat = new THREE.MeshStandardMaterial({ color: '#474c52', metalness: 0.5, roughness: 0.45 });
-    const accentMat = new THREE.MeshStandardMaterial({ color: STYLE_PALETTES[0].accent, roughness: 0.8 });
-    const clothMat = new THREE.MeshStandardMaterial({ color: STYLE_PALETTES[0].cloth, roughness: 0.84 });
+    const woodMat = new THREE.MeshStandardMaterial({
+      map: this.textures.woodWarm,
+      bumpMap: this.textures.woodBump,
+      bumpScale: 0.03,
+      roughness: 0.8,
+    });
+    const lightWood = new THREE.MeshStandardMaterial({
+      map: this.textures.woodLight,
+      bumpMap: this.textures.woodBump,
+      bumpScale: 0.025,
+      roughness: 0.78,
+    });
+    const ironMat = new THREE.MeshStandardMaterial({ color: '#3b4046', metalness: 0.58, roughness: 0.4 });
+    const brassMat = new THREE.MeshStandardMaterial({ color: '#ecc35e', metalness: 0.65, roughness: 0.28 });
+    const copperMat = new THREE.MeshStandardMaterial({ color: '#d47c4a', metalness: 0.62, roughness: 0.3 });
+    const ceramicMat = new THREE.MeshStandardMaterial({ color: '#fff9ed', roughness: 0.25 });
+    const lampGlowMat = new THREE.MeshStandardMaterial({
+      color: '#fff4c2',
+      emissive: '#ffb845',
+      emissiveIntensity: 0.9,
+      roughness: 0.2,
+    });
+    const accentMat = new THREE.MeshStandardMaterial({ color: STYLE_PALETTES[0].accent, roughness: 0.78 });
+    const clothMat = new THREE.MeshStandardMaterial({ color: STYLE_PALETTES[0].cloth, roughness: 0.82 });
     const accents: THREE.Mesh[] = [];
 
+    // Lathe-turned wooden table/bed leg profile!
+    const lathePts = [
+      new THREE.Vector2(0.035, 0),
+      new THREE.Vector2(0.055, 0.08),
+      new THREE.Vector2(0.038, 0.16),
+      new THREE.Vector2(0.058, 0.42),
+      new THREE.Vector2(0.042, 0.62),
+      new THREE.Vector2(0.055, 0.76),
+    ];
+    const turnedLegGeo = new THREE.LatheGeometry(lathePts, 10);
+
     if (kind === 'bed') {
-      const frame = new THREE.Mesh(new THREE.BoxGeometry(1.42, 0.36, 2.02), woodMat);
+      // Sculpted Oak Four-Poster Canopy Bed + Draped Valance + Bedside Nightstand & Lamp!
+      const frame = new THREE.Mesh(new THREE.BoxGeometry(1.44, 0.26, 2.04), woodMat);
       frame.position.y = 0.28;
       root.add(frame);
-      for (const sx of [-0.66, 0.66]) {
+      for (const sx of [-0.67, 0.67]) {
         for (const sz of [-0.96, 0.96]) {
-          const post = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.06, 1.55, 8), woodMat);
-          post.position.set(sx, 0.78, sz);
+          const post = new THREE.Mesh(new THREE.CylinderGeometry(0.048, 0.058, 1.88, 10), woodMat);
+          post.position.set(sx, 0.94, sz);
           root.add(post);
+          const finial = new THREE.Mesh(new THREE.SphereGeometry(0.072, 10, 8), brassMat);
+          finial.position.set(sx, 1.92, sz);
+          root.add(finial);
         }
       }
-      const mattress = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.24, 1.88), new THREE.MeshStandardMaterial({ color: '#fffaf0', roughness: 0.9 }));
-      mattress.position.y = 0.52;
+      // Canopy rails & draped fabric valance
+      for (const sx of [-0.67, 0.67]) {
+        const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.96, 8), woodMat);
+        rail.rotation.x = Math.PI / 2;
+        rail.position.set(sx, 1.82, 0);
+        root.add(rail);
+      }
+      for (const sz of [-0.96, 0.96]) {
+        const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.38, 8), woodMat);
+        rail.rotation.z = Math.PI / 2;
+        rail.position.set(0, 1.82, sz);
+        root.add(rail);
+      }
+      const canopyTop = new THREE.Mesh(new THREE.BoxGeometry(1.36, 0.05, 1.92), clothMat.clone());
+      canopyTop.position.set(0, 1.86, 0);
+      root.add(canopyTop);
+      accents.push(canopyTop);
+
+      // Arched headboard
+      const hb = new THREE.Mesh(new THREE.BoxGeometry(1.34, 0.68, 0.1), lightWood);
+      hb.position.set(0, 0.72, -0.96);
+      root.add(hb);
+      const hbArch = new THREE.Mesh(new THREE.CylinderGeometry(0.66, 0.66, 0.1, 14, 1, false, 0, Math.PI), lightWood);
+      hbArch.rotation.z = Math.PI / 2;
+      hbArch.rotation.y = Math.PI / 2;
+      hbArch.scale.set(1, 1, 0.42);
+      hbArch.position.set(0, 1.04, -0.96);
+      root.add(hbArch);
+
+      // Plush rounded mattress, folded quilted comforter & dual pillows!
+      const mattress = new THREE.Mesh(new THREE.BoxGeometry(1.32, 0.24, 1.88), ceramicMat);
+      mattress.position.y = 0.5;
       root.add(mattress);
-      const quilt = new THREE.Mesh(new THREE.BoxGeometry(1.34, 0.14, 1.25), accentMat.clone());
-      quilt.position.set(0, 0.62, 0.28);
+      const quilt = new THREE.Mesh(new THREE.BoxGeometry(1.38, 0.16, 1.24), accentMat.clone());
+      quilt.position.set(0, 0.61, 0.3);
       root.add(quilt);
       accents.push(quilt);
-      const pillow = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.16, 0.42), clothMat.clone());
-      pillow.position.set(0, 0.68, -0.62);
-      root.add(pillow);
-      accents.push(pillow);
+      const fold = new THREE.Mesh(new THREE.CapsuleGeometry(0.09, 1.24, 6, 10), clothMat.clone());
+      fold.rotation.z = Math.PI / 2;
+      fold.position.set(0, 0.68, -0.28);
+      root.add(fold);
+      accents.push(fold);
+      for (const px of [-0.32, 0.32]) {
+        const pillow = new THREE.Mesh(new THREE.CapsuleGeometry(0.11, 0.34, 6, 10), ceramicMat);
+        pillow.rotation.z = Math.PI / 2;
+        pillow.scale.set(1, 0.68, 1.1);
+        pillow.position.set(px, 0.68, -0.66);
+        root.add(pillow);
+      }
+
+      // Bedside Nightstand with warm miniature Oil Lamp!
+      const ns = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.56, 0.44), lightWood);
+      ns.position.set(1.02, 0.28, -0.72);
+      root.add(ns);
+      const nsKnob = new THREE.Mesh(new THREE.SphereGeometry(0.03, 7, 6), brassMat);
+      nsKnob.position.set(1.02, 0.36, -0.49);
+      root.add(nsKnob);
+      const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.1, 0.12, 10), brassMat);
+      lampBase.position.set(1.02, 0.62, -0.72);
+      root.add(lampBase);
+      const lampGlobe = new THREE.Mesh(new THREE.SphereGeometry(0.085, 10, 8), lampGlowMat);
+      lampGlobe.scale.set(1, 1.35, 1);
+      lampGlobe.position.set(1.02, 0.76, -0.72);
+      root.add(lampGlobe);
     } else if (kind === 'dining_table') {
-      const top = new THREE.Mesh(new THREE.BoxGeometry(1.78, 0.1, 1.15), lightWood);
+      // Turned-Leg Farmhouse Dining Table + Tea Service + Spindle-Back Cushioned Chairs!
+      const top = new THREE.Mesh(new THREE.BoxGeometry(1.82, 0.09, 1.18), lightWood);
       top.position.y = 0.78;
       root.add(top);
-      for (const sx of [-0.76, 0.76]) {
-        for (const sz of [-0.46, 0.46]) {
-          const leg = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.78, 0.1), woodMat);
-          leg.position.set(sx, 0.39, sz);
+      const apron = new THREE.Mesh(new THREE.BoxGeometry(1.62, 0.12, 0.98), woodMat);
+      apron.position.y = 0.7;
+      root.add(apron);
+      for (const sx of [-0.74, 0.74]) {
+        for (const sz of [-0.44, 0.44]) {
+          const leg = new THREE.Mesh(turnedLegGeo, woodMat);
+          leg.position.set(sx, 0, sz);
           root.add(leg);
         }
       }
-      const runner = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.02, 0.38), accentMat.clone());
-      runner.position.y = 0.84;
+      const runner = new THREE.Mesh(new THREE.BoxGeometry(1.84, 0.02, 0.38), accentMat.clone());
+      runner.position.y = 0.83;
       root.add(runner);
       accents.push(runner);
-      // 2 tucked wooden chairs
-      for (const cz of [-0.72, 0.72]) {
-        const seat = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.07, 0.44), woodMat);
-        seat.position.set(0, 0.46, cz);
-        root.add(seat);
-        const back = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.52, 0.07), woodMat);
-        back.position.set(0, 0.72, cz + (cz > 0 ? 0.2 : -0.2));
-        root.add(back);
+
+      // Ceramic Teapot + 2 Teacups + Fruit Bowl!
+      const potBody = new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 10), ceramicMat);
+      potBody.scale.set(1, 0.85, 1);
+      potBody.position.set(-0.35, 0.93, 0);
+      root.add(potBody);
+      const potLid = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 6), brassMat);
+      potLid.position.set(-0.35, 1.04, 0);
+      root.add(potLid);
+      const potSpout = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.03, 0.14, 7), ceramicMat);
+      potSpout.rotation.z = -0.75;
+      potSpout.position.set(-0.22, 0.95, 0);
+      root.add(potSpout);
+      for (const [cx, cz] of [[0.38, 0.18], [0.42, -0.18]] as [number, number][]) {
+        const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.04, 0.08, 10), ceramicMat);
+        cup.position.set(cx, 0.88, cz);
+        root.add(cup);
       }
-      const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.12, 0.12, 10), clothMat.clone());
-      bowl.position.set(0, 0.9, 0);
+      const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.11, 0.11, 14), clothMat.clone());
+      bowl.position.set(0.06, 0.89, 0);
       root.add(bowl);
       accents.push(bowl);
+      const fruitCols = ['#eb5c4a', '#f5a638', '#78c456'];
+      for (let f = 0; f < 3; f++) {
+        const fr = new THREE.Mesh(
+          new THREE.SphereGeometry(0.065, 8, 6),
+          new THREE.MeshStandardMaterial({ color: fruitCols[f], roughness: 0.45 })
+        );
+        fr.position.set(0.06 + (f - 1) * 0.075, 0.96, (f % 2 - 0.5) * 0.06);
+        root.add(fr);
+      }
+
+      // 2 Spindle-Back Cushioned Farmhouse Chairs
+      for (const cz of [-0.74, 0.74]) {
+        const dir = Math.sign(cz);
+        const seat = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.06, 0.46), woodMat);
+        seat.position.set(0, 0.45, cz);
+        root.add(seat);
+        const cushion = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.055, 0.4), clothMat.clone());
+        cushion.position.set(0, 0.5, cz);
+        root.add(cushion);
+        accents.push(cushion);
+        for (const lx of [-0.19, 0.19]) {
+          for (const lz of [-0.18, 0.18]) {
+            const cLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.02, 0.45, 7), woodMat);
+            cLeg.position.set(lx, 0.225, cz + lz);
+            root.add(cLeg);
+          }
+        }
+        const topRail = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.08, 0.055), woodMat);
+        topRail.position.set(0, 0.96, cz + dir * 0.21);
+        root.add(topRail);
+        for (let sp = -0.18; sp <= 0.19; sp += 0.09) {
+          const spindle = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.48, 6), lightWood);
+          spindle.position.set(sp, 0.71, cz + dir * 0.21);
+          root.add(spindle);
+        }
+      }
     } else if (kind === 'bookshelf') {
-      const caseBack = new THREE.Mesh(new THREE.BoxGeometry(1.52, 2.05, 0.46), woodMat);
-      caseBack.position.y = 1.02;
-      root.add(caseBack);
-      const bookCols = ['#e87461', '#69b3a2', '#f2c14e', '#7e90c9', '#d97fa8'];
+      // Crown-Molded Storybook Bookcase with varied tilted volumes, potted plant & brass candle!
+      const back = new THREE.Mesh(new THREE.BoxGeometry(1.54, 2.04, 0.06), woodMat);
+      back.position.set(0, 1.02, -0.2);
+      root.add(back);
+      for (const sx of [-0.74, 0.74]) {
+        const side = new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.04, 0.46), woodMat);
+        side.position.set(sx, 1.02, 0);
+        root.add(side);
+      }
+      const cornice = new THREE.Mesh(new THREE.BoxGeometry(1.68, 0.12, 0.54), woodMat);
+      cornice.position.set(0, 2.08, 0.02);
+      root.add(cornice);
+
+      const bookCols = ['#e06d58', '#5fa896', '#edb945', '#7487c2', '#d4749d', '#7db35d'];
       for (let row = 0; row < 4; row++) {
-        const shelf = new THREE.Mesh(new THREE.BoxGeometry(1.42, 0.06, 0.48), lightWood);
-        shelf.position.set(0, 0.35 + row * 0.45, 0.04);
+        const shelf = new THREE.Mesh(new THREE.BoxGeometry(1.44, 0.055, 0.44), lightWood);
+        shelf.position.set(0, 0.22 + row * 0.46, 0.01);
         root.add(shelf);
-        for (let b = 0; b < 6; b++) {
+        for (let b = 0; b < 7; b++) {
+          const h = 0.26 + ((row * 3 + b) % 3) * 0.045;
           const bk = new THREE.Mesh(
-            new THREE.BoxGeometry(0.16, 0.28 + (b % 2) * 0.05, 0.28),
-            new THREE.MeshStandardMaterial({ color: bookCols[(row + b) % bookCols.length], roughness: 0.7 })
+            new THREE.BoxGeometry(0.14, h, 0.28),
+            new THREE.MeshStandardMaterial({ color: bookCols[(row * 2 + b) % bookCols.length], roughness: 0.65 })
           );
-          bk.position.set(-0.52 + b * 0.21, 0.52 + row * 0.45, 0.12);
+          const tilt = b === 6 ? 0.22 : 0;
+          bk.position.set(-0.54 + b * 0.175, 0.25 + row * 0.46 + h * 0.5, 0.06);
+          bk.rotation.z = tilt;
           root.add(bk);
           if (b === 0) accents.push(bk);
         }
       }
+      // Potted plant & glowing brass candle on top of bookcase
+      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.09, 0.18, 10), copperMat);
+      pot.position.set(-0.46, 2.22, 0);
+      root.add(pot);
+      const plant = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(0.15, 1),
+        new THREE.MeshStandardMaterial({ color: '#5fa851', roughness: 0.8 })
+      );
+      plant.position.set(-0.46, 2.38, 0);
+      root.add(plant);
+      const candleHolder = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.06, 10), brassMat);
+      candleHolder.position.set(0.45, 2.17, 0);
+      root.add(candleHolder);
+      const candle = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.2, 8), ceramicMat);
+      candle.position.set(0.45, 2.29, 0);
+      root.add(candle);
+      const flame = new THREE.Mesh(new THREE.SphereGeometry(0.032, 6, 6), lampGlowMat);
+      flame.scale.set(0.7, 1.4, 0.7);
+      flame.position.set(0.45, 2.42, 0);
+      root.add(flame);
     } else if (kind === 'hearth_lounge') {
-      const rug = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.05, 0.03, 20), accentMat.clone());
-      rug.scale.set(1.1, 1, 0.85);
-      rug.position.y = 0.02;
-      root.add(rug);
-      accents.push(rug);
-      const chairSeat = new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.36, 0.82), clothMat.clone());
-      chairSeat.position.set(0, 0.32, 0);
-      root.add(chairSeat);
-      accents.push(chairSeat);
-      const chairBack = new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.72, 0.2), accentMat.clone());
-      chairBack.position.set(0, 0.68, -0.34);
-      root.add(chairBack);
-      accents.push(chairBack);
+      // Braided Concentric Oval Rug + Plush Winged Armchair with Rolled Armrests + Ottoman!
+      const rugOuter = new THREE.Mesh(new THREE.CylinderGeometry(1.12, 1.12, 0.025, 28), accentMat.clone());
+      rugOuter.scale.set(1.12, 1, 0.86);
+      rugOuter.position.y = 0.015;
+      root.add(rugOuter);
+      accents.push(rugOuter);
+      const rugInner = new THREE.Mesh(new THREE.CylinderGeometry(0.76, 0.76, 0.03, 24), clothMat.clone());
+      rugInner.scale.set(1.12, 1, 0.86);
+      rugInner.position.y = 0.02;
+      root.add(rugInner);
+      accents.push(rugInner);
+
+      // Winged Plush Armchair with turned wooden legs & rolled armrests
+      for (const lx of [-0.34, 0.34]) {
+        for (const lz of [-0.32, 0.32]) {
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.022, 0.24, 8), woodMat);
+          leg.position.set(lx, 0.12, lz);
+          root.add(leg);
+        }
+      }
+      const seatCushion = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 0.42, 6, 10), clothMat.clone());
+      seatCushion.rotation.z = Math.PI / 2;
+      seatCushion.scale.set(0.75, 1, 1.45);
+      seatCushion.position.set(0, 0.36, 0.02);
+      root.add(seatCushion);
+      accents.push(seatCushion);
+
+      const backCushion = new THREE.Mesh(new THREE.CapsuleGeometry(0.24, 0.44, 6, 10), accentMat.clone());
+      backCushion.rotation.z = Math.PI / 2;
+      backCushion.scale.set(1.55, 1, 0.52);
+      backCushion.position.set(0, 0.74, -0.32);
+      root.add(backCushion);
+      accents.push(backCushion);
+
+      for (const side of [-1, 1]) {
+        const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.11, 0.56, 6, 10), accentMat.clone());
+        arm.rotation.x = Math.PI / 2;
+        arm.position.set(side * 0.44, 0.54, 0.02);
+        root.add(arm);
+        accents.push(arm);
+      }
+
+      // Cozy matching Ottoman Footstool!
+      const otto = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.26, 0.2, 14), clothMat.clone());
+      otto.position.set(0, 0.24, 0.86);
+      root.add(otto);
+      accents.push(otto);
+      for (let l = 0; l < 4; l++) {
+        const a = (l / 4) * Math.PI * 2 + 0.4;
+        const oLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.016, 0.16, 6), woodMat);
+        oLeg.position.set(Math.cos(a) * 0.18, 0.08, 0.86 + Math.sin(a) * 0.18);
+        root.add(oLeg);
+      }
     } else if (kind === 'kitchen_stove') {
-      const counter = new THREE.Mesh(new THREE.BoxGeometry(1.98, 0.88, 0.74), lightWood);
-      counter.position.y = 0.44;
+      // Paneled Farmhouse Kitchen Counter + Cast-Iron Woodstove + Stovepipe + Copper Kettle!
+      const counter = new THREE.Mesh(new THREE.BoxGeometry(1.24, 0.88, 0.74), lightWood);
+      counter.position.set(0.36, 0.44, 0);
       root.add(counter);
-      const stove = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.92, 0.76), ironMat);
-      stove.position.set(-0.56, 0.46, 0);
-      root.add(stove);
-      const kettle = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), accentMat.clone());
-      kettle.position.set(-0.56, 1.04, 0);
-      root.add(kettle);
-      accents.push(kettle);
-      const cloth = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.04, 0.55), clothMat.clone());
-      cloth.position.set(0.45, 0.9, 0);
+      const counterTop = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.07, 0.8), woodMat);
+      counterTop.position.set(0.36, 0.9, 0);
+      root.add(counterTop);
+      for (const dx of [0.06, 0.66]) {
+        const panel = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.62, 0.04), woodMat);
+        panel.position.set(dx, 0.42, 0.37);
+        root.add(panel);
+        const knob = new THREE.Mesh(new THREE.SphereGeometry(0.028, 7, 6), brassMat);
+        knob.position.set(dx + 0.16, 0.52, 0.4);
+        root.add(knob);
+      }
+      // Wooden cutting board + veggies
+      const board = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.03, 0.32), woodMat);
+      board.position.set(0.42, 0.95, 0.05);
+      root.add(board);
+      const cloth = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.03, 0.48), clothMat.clone());
+      cloth.position.set(-0.02, 0.94, 0.04);
       root.add(cloth);
       accents.push(cloth);
+
+      // Cast-iron woodstove with glowing firebox grate + vertical iron stovepipe + sculpted copper kettle!
+      const stove = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.86, 0.76), ironMat);
+      stove.position.set(-0.62, 0.48, 0);
+      root.add(stove);
+      const firebox = new THREE.Mesh(
+        new THREE.BoxGeometry(0.36, 0.24, 0.05),
+        new THREE.MeshStandardMaterial({ color: '#ff8533', emissive: '#ff5e1a', emissiveIntensity: 1.1 })
+      );
+      firebox.position.set(-0.62, 0.48, 0.37);
+      root.add(firebox);
+      const stovepipe = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.105, 2.9, 10), ironMat);
+      stovepipe.position.set(-0.62, 2.32, -0.22);
+      root.add(stovepipe);
+
+      // Copper kettle with spout & arched handle
+      const kettle = new THREE.Mesh(new THREE.SphereGeometry(0.15, 12, 10), copperMat);
+      kettle.scale.set(1, 0.82, 1);
+      kettle.position.set(-0.56, 1.03, 0.12);
+      root.add(kettle);
+      const kHandle = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.016, 6, 14, Math.PI), ironMat);
+      kHandle.position.set(-0.56, 1.08, 0.12);
+      root.add(kHandle);
+      const kSpout = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.032, 0.14, 7), copperMat);
+      kSpout.rotation.z = -0.82;
+      kSpout.position.set(-0.42, 1.06, 0.12);
+      root.add(kSpout);
     } else if (kind === 'workbench') {
-      const benchTop = new THREE.Mesh(new THREE.BoxGeometry(1.98, 0.14, 0.88), lightWood);
+      // Heavy Craftsman Workbench + Tool Pegboard with 3D Handsaw & Mallet + Bench Vise!
+      const benchTop = new THREE.Mesh(new THREE.BoxGeometry(2.02, 0.12, 0.9), lightWood);
       benchTop.position.y = 0.86;
       root.add(benchTop);
-      for (const sx of [-0.86, 0.86]) {
-        for (const sz of [-0.34, 0.34]) {
+      const lowerShelf = new THREE.Mesh(new THREE.BoxGeometry(1.78, 0.07, 0.72), woodMat);
+      lowerShelf.position.y = 0.28;
+      root.add(lowerShelf);
+      for (const sx of [-0.88, 0.88]) {
+        for (const sz of [-0.36, 0.36]) {
           const leg = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.86, 0.12), woodMat);
           leg.position.set(sx, 0.43, sz);
           root.add(leg);
         }
       }
-      const toolbox = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.26, 0.32), accentMat.clone());
-      toolbox.position.set(-0.52, 1.06, -0.1);
+      // Pegboard backboard with mounted handsaw & wooden mallet
+      const pegboard = new THREE.Mesh(new THREE.BoxGeometry(1.92, 0.92, 0.06), woodMat);
+      pegboard.position.set(0, 1.38, -0.42);
+      root.add(pegboard);
+      const sawBlade = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.13, 0.015), ironMat);
+      sawBlade.position.set(-0.32, 1.48, -0.37);
+      root.add(sawBlade);
+      const sawHandle = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.022, 6, 10), lightWood);
+      sawHandle.position.set(-0.62, 1.48, -0.36);
+      root.add(sawHandle);
+      const malletHead = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.18, 8), lightWood);
+      malletHead.rotation.z = Math.PI / 2;
+      malletHead.position.set(0.35, 1.56, -0.36);
+      root.add(malletHead);
+      const malletStick = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.022, 0.32, 7), woodMat);
+      malletStick.position.set(0.35, 1.38, -0.36);
+      root.add(malletStick);
+
+      const toolbox = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.24, 0.32), accentMat.clone());
+      toolbox.position.set(-0.56, 1.04, 0.05);
       root.add(toolbox);
       accents.push(toolbox);
-      const vise = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.2, 0.26), ironMat);
-      vise.position.set(0.75, 0.96, 0.34);
+      const vise = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.2, 0.28), ironMat);
+      vise.position.set(0.78, 0.94, 0.38);
       root.add(vise);
+      const viseBar = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.32, 6), brassMat);
+      viseBar.rotation.z = Math.PI / 2;
+      viseBar.position.set(0.78, 0.9, 0.56);
+      root.add(viseBar);
     } else if (kind === 'dairy_press') {
-      const stand = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.85, 0.82), woodMat);
+      // Artisan Butter Churn with iron hoops & plunger + Waxed Cheese Wheels + Milk Bottles!
+      const stand = new THREE.Mesh(new THREE.BoxGeometry(1.72, 0.84, 0.84), woodMat);
       stand.position.y = 0.42;
       root.add(stand);
-      const churn = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.3, 0.72, 12), lightWood);
-      churn.position.set(-0.42, 1.18, 0);
+      const standTop = new THREE.Mesh(new THREE.BoxGeometry(1.78, 0.07, 0.9), lightWood);
+      standTop.position.y = 0.86;
+      root.add(standTop);
+
+      const churn = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.29, 0.72, 14), lightWood);
+      churn.position.set(-0.44, 1.24, 0);
       root.add(churn);
-      const cheeseWheel = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.18, 14), clothMat.clone());
-      cheeseWheel.position.set(0.38, 0.96, 0);
+      for (const hy of [1.04, 1.44]) {
+        const hoop = new THREE.Mesh(new THREE.TorusGeometry(hy > 1.2 ? 0.24 : 0.275, 0.018, 6, 18), ironMat);
+        hoop.rotation.x = Math.PI / 2;
+        hoop.position.set(-0.44, hy, 0);
+        root.add(hoop);
+      }
+      const plunger = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.024, 0.52, 8), woodMat);
+      plunger.position.set(-0.44, 1.78, 0);
+      root.add(plunger);
+
+      // Aged Cheese Wheel with missing cut wedge + Ceramic Milk Jugs
+      const cheeseWheel = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.28, 0.28, 0.18, 18, 1, false, 0, Math.PI * 1.72),
+        clothMat.clone()
+      );
+      cheeseWheel.position.set(0.22, 0.99, 0.08);
       root.add(cheeseWheel);
       accents.push(cheeseWheel);
+      for (const mz of [-0.18, 0.12]) {
+        const bottle = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 0.26, 10), ceramicMat);
+        bottle.position.set(0.68, 1.03, mz);
+        root.add(bottle);
+        const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.04, 8), accentMat.clone());
+        cap.position.set(0.68, 1.18, mz);
+        root.add(cap);
+        accents.push(cap);
+      }
     } else if (kind === 'trophy_rack') {
-      const plaque = new THREE.Mesh(new THREE.BoxGeometry(2.1, 1.25, 0.16), woodMat);
-      plaque.position.set(0, 1.55, -0.15);
+      // Carved Hunter & Angler Trophy Wall: Multi-Tine Stag Antlers + Mounted Golden Carp Plaque!
+      const plaque = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.45, 0.14), woodMat);
+      plaque.position.set(0, 1.62, -0.15);
       root.add(plaque);
-      const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.3, 0.1, 6), accentMat.clone());
+      const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.3, 0.1, 8), accentMat.clone());
       shield.rotation.x = Math.PI / 2;
-      shield.position.set(0, 1.62, -0.02);
+      shield.position.set(-0.48, 1.72, -0.04);
       root.add(shield);
       accents.push(shield);
-      // Sculpted decorative antler trophy mounted on shield!
-      const antlerMat = new THREE.MeshStandardMaterial({ color: '#e6d4b5', roughness: 0.75 });
+
+      // Branching multi-tine antler trophy!
+      const antlerMat = new THREE.MeshStandardMaterial({ color: '#ead9bc', roughness: 0.7 });
       for (const side of [-1, 1]) {
-        const horn = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.055, 0.75, 6), antlerMat);
-        horn.position.set(side * 0.34, 1.85, 0.08);
-        horn.rotation.z = -side * 0.68;
-        root.add(horn);
+        const mainBeam = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.045, 0.68, 7), antlerMat);
+        mainBeam.position.set(-0.48 + side * 0.28, 1.92, 0.08);
+        mainBeam.rotation.z = -side * 0.72;
+        root.add(mainBeam);
+        for (const [tx, ty, rot] of [[0.22, 0.14, 0.15], [0.42, 0.24, -0.25]] as [number, number, number][]) {
+          const tine = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.024, 0.24, 6), antlerMat);
+          tine.position.set(-0.48 + side * tx, 1.88 + ty, 0.1);
+          tine.rotation.z = side * rot;
+          root.add(tine);
+        }
       }
-      const shelf = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.12, 0.48), lightWood);
+
+      // Mounted Golden Carp Fishing Trophy on right plaque!
+      const fishPlaque = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.08, 16), lightWood);
+      fishPlaque.rotation.x = Math.PI / 2;
+      fishPlaque.scale.set(1.45, 1, 0.75);
+      fishPlaque.position.set(0.52, 1.62, -0.05);
+      root.add(fishPlaque);
+      const carpMat = new THREE.MeshStandardMaterial({ color: '#f5b84c', roughness: 0.28, metalness: 0.25 });
+      const carpBody = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 8), carpMat);
+      carpBody.scale.set(2.1, 0.85, 0.45);
+      carpBody.position.set(0.5, 1.62, 0.04);
+      root.add(carpBody);
+      const carpTail = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.22, 6), carpMat);
+      carpTail.rotation.z = Math.PI / 2;
+      carpTail.position.set(0.84, 1.62, 0.04);
+      root.add(carpTail);
+
+      const shelf = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.11, 0.48), lightWood);
       shelf.position.set(0, 0.85, 0.06);
       root.add(shelf);
+      const lantern = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.085, 0.24, 6), lampGlowMat);
+      lantern.position.set(0.65, 1.03, 0.08);
+      root.add(lantern);
     } else if (kind === 'barn_loft') {
+      // Twine-Banded Golden Hay Bales + Iron-Bracketed Crate + Barn Oil Lantern!
       const hayMat = new THREE.MeshStandardMaterial({ map: this.textures.hayGolden, roughness: 0.94 });
-      for (const [hx, hy, hz] of [[-0.45, 0.38, -0.25], [0.45, 0.38, -0.25], [0, 1.08, -0.25]] as [number, number, number][]) {
-        const bale = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.68, 0.78), hayMat);
+      const twineMat = new THREE.MeshStandardMaterial({ color: '#9c6832', roughness: 0.9 });
+      for (const [hx, hy, hz] of [[-0.46, 0.35, -0.25], [0.46, 0.35, -0.25], [0, 1.02, -0.25]] as [number, number, number][]) {
+        const bale = new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.66, 0.78), hayMat);
         bale.position.set(hx, hy, hz);
         root.add(bale);
+        for (const tx of [-0.24, 0.24]) {
+          const band = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.68, 0.8), twineMat);
+          band.position.set(hx + tx, hy, hz);
+          root.add(band);
+        }
       }
-      const crate = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.65, 0.75), accentMat.clone());
-      crate.position.set(-0.35, 0.34, 0.48);
+      const crate = new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.64, 0.74), accentMat.clone());
+      crate.position.set(-0.36, 0.33, 0.48);
       root.add(crate);
       accents.push(crate);
+      const lamp = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.085, 0.24, 6), lampGlowMat);
+      lamp.position.set(-0.36, 0.77, 0.48);
+      root.add(lamp);
     }
 
     return accents;

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { FarmTextures } from '../assets/textures';
+import { modelLibrary, ModelKey } from '../assets/modelLoader';
 import { WORLD_CONFIG } from '../config/farmConfig';
 import { CollisionSystem } from './CollisionSystem';
 import { SkyAndLighting } from './SkyAndLighting';
@@ -60,6 +61,9 @@ export class WildernessExpansion {
   private lakeZone = new THREE.Group();
   private westForestZone = new THREE.Group();
   private eastMeadowZone = new THREE.Group();
+  private placeholderBirches = new THREE.Group();
+  private birchCoords: [number, number, number][] = [];
+  private forestGlbSpots: [number, number, number][] = [];
 
   private lakeWaterMat?: THREE.ShaderMaterial;
   private fishList: SwimmingFish[] = [];
@@ -450,7 +454,9 @@ export class WildernessExpansion {
       [38, 32, 1.35], [40, -38, 1.5], [32, -46, 1.45], [52, -46, 1.55], [68, -40, 1.5],
       [74, -2, 1.4], [58, -18, 1.3], [46, -6, 1.25], [34, 12, 1.2], [72, 22, 1.45],
     ];
+    this.eastMeadowZone.add(this.placeholderBirches);
     birchSpots.forEach(([x, z, s], idx) => {
+      this.birchCoords.push([x, z, s]);
       const t = new THREE.Group();
       t.position.set(x, 0, z);
       const nearFarm = Math.abs(x) < 48 && Math.abs(z) < 30;
@@ -466,7 +472,7 @@ export class WildernessExpansion {
         puff.castShadow = nearFarm;
         t.add(puff);
       }
-      this.eastMeadowZone.add(t);
+      this.placeholderBirches.add(t);
       this.collisions.addCircle(x, z, 0.48 * s);
     });
 
@@ -563,6 +569,95 @@ export class WildernessExpansion {
     addSign(-25.5, 4.6, Math.PI / 2 - 0.18, 'PINE FOREST', 'West Trail • Hunting');
     addSign(25.5, 4.6, -Math.PI / 2 + 0.18, 'BIRCH MEADOW', 'East Trail • Hunting');
     addSign(-2.4, -31.0, 0.2, 'EMERALD LAKE', 'North Pier • Fishing');
+  }
+
+  /**
+   * Upgrades expanded wilderness zones with high-detail Quaternius CC0 .glb trees, mossy rocks, logs & props!
+   */
+  public mountLoadedModels(): void {
+    const foliagePredicate = (name: string, color: THREE.Color) => {
+      const lower = name.toLowerCase();
+      if (lower.includes('bark') || lower.includes('wood') || lower.includes('trunk')) return false;
+      if (lower.includes('leaf') || lower.includes('leaves') || lower.includes('green') || lower.includes('foliage')) return true;
+      return color.g > color.r * 1.05 && color.g > color.b * 0.95;
+    };
+
+    // 1. Replace ALL 25 East Birch Meadow placeholder trees with sculpted Quaternius Birch & Oak GLB trees!
+    let mountedBirches = 0;
+    const meadowTints = ['#86c95b', '#ecc454', '#6fb858', '#f2b84b'];
+    const meadowKeys: ModelKey[] = ['tree_birch_1', 'tree_common_1', 'tree_birch_1', 'tree_common_2'];
+    this.birchCoords.forEach(([x, z, s], idx) => {
+      const nearFarm = Math.abs(x) < 48 && Math.abs(z) < 30;
+      const tree = modelLibrary.cloneGrounded(meadowKeys[idx % meadowKeys.length], 5.6 * s, {
+        tintColor: meadowTints[idx % meadowTints.length],
+        tintPredicate: foliagePredicate,
+        castShadow: nearFarm,
+        receiveShadow: nearFarm,
+      });
+      if (tree) {
+        tree.position.set(x, 0, z);
+        tree.rotation.y = (x * 1.3 + z * 2.1) % (Math.PI * 2);
+        this.eastMeadowZone.add(tree);
+        mountedBirches++;
+      }
+    });
+    if (mountedBirches > 0) {
+      this.placeholderBirches.visible = false;
+    }
+
+    // 2. Enrich Pine Forest with sculpted Quaternius broadleaf trees, mossy stumps, logs, berry bushes & mushrooms!
+    const forestAccents: [ModelKey, number, number, number, number][] = [
+      ['tree_common_3', -31, -4, 6.4, 0.5],
+      ['tree_common_2', -45, -18, 7.2, 1.4],
+      ['tree_common_1', -55, 2, 6.8, 2.2],
+      ['tree_common_3', -40, 16, 6.6, 0.9],
+      ['stump_moss', -41.5, -0.5, 0.85, 0.6],
+      ['log_moss', -46.2, 1.4, 0.78, 1.1],
+      ['rock_moss_1', -49.0, -5.5, 1.45, 0.8],
+      ['rock_moss_2', -35.0, -12.0, 1.35, 2.1],
+      ['bush_berries', -42.5, -5.2, 1.15, 0.3],
+      ['bush_berries', -37.2, 4.2, 1.05, 1.5],
+      ['mushroom_red', -41.0, 0.2, 0.48, 0.4],
+      ['mushroom_red', -45.5, 2.1, 0.45, 1.7],
+      ['log_stack', -42.2, -3.4, 0.85, 0.9],
+    ];
+    for (const [key, x, z, h, rot] of forestAccents) {
+      const m = modelLibrary.cloneGrounded(key, h, {
+        tintColor: key.startsWith('tree_') ? '#4c944c' : undefined,
+        tintPredicate: key.startsWith('tree_') ? foliagePredicate : undefined,
+        castShadow: Math.abs(x) < 48,
+      });
+      if (m) {
+        m.position.set(x, 0, z);
+        m.rotation.y = rot;
+        this.westForestZone.add(m);
+      }
+    }
+
+    // 3. Enrich Emerald Lake shoreline with weeping willow trees, moored wooden rowboat & mossy lakeside boulders!
+    const lakeProps: [ModelKey, number, number, number, number, number][] = [
+      ['tree_willow_1', -25.5, -45.0, 7.4, 0.4, 0],
+      ['tree_willow_1', 14.5, -46.0, 7.2, 1.9, 0],
+      ['boat', -1.8, -44.2, 0.82, -2.1, 0.1],
+      ['barrel', -7.1, -43.2, 0.95, 0.4, 0.46],
+      ['rock_moss_1', -18.0, -42.5, 1.35, 0.7, 0],
+      ['rock_moss_2', 8.5, -43.0, 1.25, 1.8, 0],
+      ['bush_berries', -11.5, -40.2, 1.05, 0.6, 0],
+      ['bush_berries', 1.2, -40.4, 1.05, 2.0, 0],
+    ];
+    for (const [key, x, z, h, rot, y] of lakeProps) {
+      const m = modelLibrary.cloneGrounded(key, h, {
+        tintColor: key === 'tree_willow_1' ? '#6cc268' : undefined,
+        tintPredicate: key === 'tree_willow_1' ? foliagePredicate : undefined,
+        castShadow: false,
+      });
+      if (m) {
+        m.position.set(x, y, z);
+        m.rotation.y = rot;
+        this.lakeZone.add(m);
+      }
+    }
+    void this.forestGlbSpots;
   }
 
   public update(dt: number, elapsed: number, nightFactor: number, playerPos: THREE.Vector3): void {

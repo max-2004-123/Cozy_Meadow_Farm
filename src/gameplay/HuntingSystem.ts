@@ -106,115 +106,189 @@ export class HuntingSystem {
 
     if (species === 'rabbit') {
       const furMat = new THREE.MeshStandardMaterial({
-        color: idx % 2 === 0 ? '#c9a07a' : '#e6d5bf',
-        roughness: 0.88,
+        color: idx % 2 === 0 ? '#c99e76' : '#e6d3ba',
+        roughness: 0.86,
       });
-      const whiteMat = new THREE.MeshStandardMaterial({ color: '#fffbf2', roughness: 0.9 });
-      const body = new THREE.Mesh(new THREE.SphereGeometry(0.24, 10, 8), furMat);
-      body.scale.set(1.25, 0.92, 0.9);
-      body.position.set(0, 0.28, 0);
+      const bellyMat = new THREE.MeshStandardMaterial({ color: '#fff8ec', roughness: 0.9 });
+      const innerEarMat = new THREE.MeshStandardMaterial({ color: '#f2b1b8', roughness: 0.72 });
+      const body = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 10), furMat);
+      body.scale.set(1.28, 0.92, 0.88);
+      body.position.set(0, 0.29, 0);
       body.castShadow = true;
       g.add(body);
-      const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 9, 7), furMat);
-      head.position.set(0.24, 0.42, 0);
+      const chest = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), bellyMat);
+      chest.position.set(0.14, 0.26, 0);
+      g.add(chest);
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), furMat);
+      head.scale.set(1.12, 0.96, 0.92);
+      head.position.set(0.26, 0.44, 0);
       head.castShadow = true;
       g.add(head);
-      for (const sz of [-0.06, 0.06]) {
-        const ear = new THREE.Mesh(new THREE.CapsuleGeometry(0.032, 0.18, 4, 6), furMat);
-        ear.position.set(0.22, 0.62, sz);
-        ear.rotation.z = -0.18;
+      const nose = new THREE.Mesh(new THREE.SphereGeometry(0.032, 7, 6), innerEarMat);
+      nose.position.set(0.42, 0.43, 0);
+      g.add(nose);
+      for (const sz of [-0.065, 0.065]) {
+        const ear = new THREE.Mesh(new THREE.CapsuleGeometry(0.034, 0.2, 5, 8), furMat);
+        ear.position.set(0.22, 0.65, sz);
+        ear.rotation.z = -0.2;
+        ear.rotation.x = Math.sign(sz) * 0.14;
         g.add(ear);
-        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.022, 6, 5), eyeMat);
-        eye.position.set(0.35, 0.46, sz * 1.4);
+        const inner = new THREE.Mesh(new THREE.CapsuleGeometry(0.018, 0.15, 4, 6), innerEarMat);
+        inner.position.set(0.235, 0.65, sz);
+        inner.rotation.z = -0.2;
+        inner.rotation.x = Math.sign(sz) * 0.14;
+        g.add(inner);
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.024, 7, 6), eyeMat);
+        eye.position.set(0.36, 0.48, sz * 1.45);
         g.add(eye);
+        // Cute hind & front paws
+        const hindPaw = new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 6), furMat);
+        hindPaw.scale.set(1.35, 0.65, 0.8);
+        hindPaw.position.set(-0.1, 0.08, sz * 1.9);
+        g.add(hindPaw);
       }
-      const tail = new THREE.Mesh(new THREE.SphereGeometry(0.085, 7, 6), whiteMat);
-      tail.position.set(-0.28, 0.28, 0);
+      const tail = new THREE.Mesh(new THREE.SphereGeometry(0.095, 10, 8), bellyMat);
+      tail.position.set(-0.29, 0.29, 0);
       g.add(tail);
       return { group: g, legs, hitRadius: 0.95, hitCenterY: 0.4, speed: 2.3 };
     }
 
     if (species === 'deer') {
       const coatMat = new THREE.MeshStandardMaterial({
-        color: idx % 2 === 0 ? '#bd7f4a' : '#a86b3c',
-        roughness: 0.85,
+        color: idx % 2 === 0 ? '#be7e46' : '#a86a3a',
+        roughness: 0.82,
       });
-      const spotMat = new THREE.MeshStandardMaterial({ color: '#f7ead4', roughness: 0.85 });
-      const antlerMat = new THREE.MeshStandardMaterial({ color: '#e6d6b8', roughness: 0.72 });
+      const bellyMat = new THREE.MeshStandardMaterial({ color: '#f7ebd5', roughness: 0.86 });
+      const hoofMat = new THREE.MeshStandardMaterial({ color: '#2b231e', roughness: 0.6 });
+      const antlerMat = new THREE.MeshStandardMaterial({ color: '#ead8b8', roughness: 0.68 });
 
-      const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.32, 0.75, 6, 10), coatMat);
+      const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.32, 0.78, 8, 14), coatMat);
       body.rotation.z = Math.PI / 2;
-      body.position.set(0, 1.05, 0);
+      body.position.set(0, 1.06, 0);
       body.castShadow = true;
       g.add(body);
+      // Cream chest ruff & underbelly + white-tipped upright tail
+      const chest = new THREE.Mesh(new THREE.SphereGeometry(0.26, 10, 8), bellyMat);
+      chest.scale.set(1.1, 0.95, 0.85);
+      chest.position.set(0.38, 1.04, 0);
+      g.add(chest);
+      const tail = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.28, 7), bellyMat);
+      tail.position.set(-0.56, 1.18, 0);
+      tail.rotation.z = 0.7;
+      g.add(tail);
+
       // Soft fawn spots on back
-      for (const [sx, sz] of [[-0.18, 0.24], [0.1, -0.24], [0.0, 0.26], [-0.25, -0.22]] as [number, number][]) {
-        const sp = new THREE.Mesh(new THREE.SphereGeometry(0.055, 6, 5), spotMat);
-        sp.position.set(sx, 1.18, sz);
+      for (const [sx, sz] of [[-0.22, 0.24], [0.12, -0.24], [0.0, 0.26], [-0.28, -0.22], [0.2, 0.2]] as [number, number][]) {
+        const sp = new THREE.Mesh(new THREE.SphereGeometry(0.055, 7, 6), bellyMat);
+        sp.position.set(sx, 1.2, sz);
         g.add(sp);
       }
-      const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, 0.62, 8), coatMat);
-      neck.position.set(0.48, 1.38, 0);
-      neck.rotation.z = -0.35;
+      const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.18, 0.66, 10), coatMat);
+      neck.position.set(0.5, 1.4, 0);
+      neck.rotation.z = -0.34;
       neck.castShadow = true;
       g.add(neck);
-      const head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 9, 7), coatMat);
-      head.scale.set(1.35, 0.92, 0.86);
-      head.position.set(0.68, 1.66, 0);
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 10), coatMat);
+      head.scale.set(1.38, 0.9, 0.84);
+      head.position.set(0.7, 1.68, 0);
       head.castShadow = true;
       g.add(head);
-      // Proud branching antlers
+      const muzzle = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.095, 0.22, 10), coatMat);
+      muzzle.rotation.z = -Math.PI / 2;
+      muzzle.position.set(0.88, 1.64, 0);
+      g.add(muzzle);
+      const nose = new THREE.Mesh(new THREE.SphereGeometry(0.048, 8, 6), hoofMat);
+      nose.position.set(0.99, 1.64, 0);
+      g.add(nose);
+
+      // Cupped Ears + Multi-Tine Branching Stag Antlers (3 tines per side!)
       for (const side of [-1, 1]) {
-        const mainAntler = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.032, 0.56, 6), antlerMat);
-        mainAntler.position.set(0.62, 1.98, side * 0.14);
-        mainAntler.rotation.x = side * 0.35;
+        const ear = new THREE.Mesh(new THREE.CapsuleGeometry(0.036, 0.14, 4, 7), coatMat);
+        ear.position.set(0.58, 1.82, side * 0.16);
+        ear.rotation.x = side * 0.55;
+        ear.rotation.z = 0.25;
+        g.add(ear);
+
+        const mainAntler = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.032, 0.62, 7), antlerMat);
+        mainAntler.position.set(0.64, 2.0, side * 0.15);
+        mainAntler.rotation.x = side * 0.42;
         mainAntler.rotation.z = 0.22;
         g.add(mainAntler);
-        const tine = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.022, 0.26, 5), antlerMat);
-        tine.position.set(0.68, 2.02, side * 0.24);
-        tine.rotation.z = -0.5;
-        g.add(tine);
-        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.026, 6, 5), eyeMat);
-        eye.position.set(0.8, 1.7, side * 0.13);
+        const tine1 = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.022, 0.26, 6), antlerMat);
+        tine1.position.set(0.72, 1.98, side * 0.22);
+        tine1.rotation.z = -0.58;
+        g.add(tine1);
+        const tine2 = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.02, 0.24, 6), antlerMat);
+        tine2.position.set(0.66, 2.18, side * 0.28);
+        tine2.rotation.z = -0.45;
+        tine2.rotation.x = side * 0.25;
+        g.add(tine2);
+
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.028, 7, 6), eyeMat);
+        eye.position.set(0.8, 1.72, side * 0.13);
         g.add(eye);
       }
       for (const lx of [-0.36, 0.36]) {
         for (const lz of [-0.15, 0.15]) {
-          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.042, 0.95, 7), coatMat);
-          leg.position.set(lx, 0.48, lz);
+          const legGroup = new THREE.Group();
+          legGroup.position.set(lx, 0.92, lz);
+          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.056, 0.038, 0.88, 8), coatMat);
+          leg.position.y = -0.44;
           leg.castShadow = true;
-          g.add(leg);
-          legs.push(leg);
+          legGroup.add(leg);
+          const hoof = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.048, 0.09, 8), hoofMat);
+          hoof.position.y = -0.88;
+          legGroup.add(hoof);
+          g.add(legGroup);
+          legs.push(legGroup);
         }
       }
       return { group: g, legs, hitRadius: 1.35, hitCenterY: 1.15, speed: 2.7 };
     }
 
-    // Wild Forest Boar
-    const boarMat = new THREE.MeshStandardMaterial({ color: '#6b4938', roughness: 0.92 });
-    const tuskMat = new THREE.MeshStandardMaterial({ color: '#fff7e6', roughness: 0.5 });
-    const body = new THREE.Mesh(new THREE.SphereGeometry(0.42, 10, 8), boarMat);
-    body.scale.set(1.38, 0.96, 0.9);
+    // Sculpted Wild Forest Boar with bristled dorsal mane, tusks, floppy ears & hooves!
+    const boarMat = new THREE.MeshStandardMaterial({ color: '#6b4938', roughness: 0.9 });
+    const maneMat = new THREE.MeshStandardMaterial({ color: '#452c20', roughness: 0.95 });
+    const tuskMat = new THREE.MeshStandardMaterial({ color: '#fff7e6', roughness: 0.45 });
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.42, 14, 10), boarMat);
+    body.scale.set(1.42, 0.96, 0.9);
     body.position.set(0, 0.58, 0);
     body.castShadow = true;
     g.add(body);
-    const snout = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 0.26, 8), boarMat);
+    // Bristled spine mane ridge
+    const mane = new THREE.Mesh(new THREE.CapsuleGeometry(0.11, 0.65, 5, 8), maneMat);
+    mane.rotation.z = Math.PI / 2 - 0.15;
+    mane.position.set(0.08, 0.96, 0);
+    g.add(mane);
+    const snout = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.19, 0.28, 10), boarMat);
     snout.rotation.z = -Math.PI / 2;
-    snout.position.set(0.58, 0.56, 0);
+    snout.position.set(0.6, 0.56, 0);
     g.add(snout);
+    const snoutTip = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.05, 10), maneMat);
+    snoutTip.rotation.z = -Math.PI / 2;
+    snoutTip.position.set(0.74, 0.56, 0);
+    g.add(snoutTip);
     for (const side of [-1, 1]) {
-      const tusk = new THREE.Mesh(new THREE.ConeGeometry(0.032, 0.18, 6), tuskMat);
-      tusk.position.set(0.62, 0.55, side * 0.13);
-      tusk.rotation.z = -0.5;
-      tusk.rotation.x = side * 0.3;
+      const tusk = new THREE.Mesh(new THREE.ConeGeometry(0.034, 0.22, 7), tuskMat);
+      tusk.position.set(0.63, 0.57, side * 0.14);
+      tusk.rotation.z = -0.55;
+      tusk.rotation.x = side * 0.35;
       g.add(tusk);
-      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.028, 6, 5), eyeMat);
-      eye.position.set(0.46, 0.72, side * 0.22);
+      const ear = new THREE.Mesh(new THREE.CapsuleGeometry(0.04, 0.12, 4, 6), maneMat);
+      ear.position.set(0.38, 0.84, side * 0.22);
+      ear.rotation.x = side * 0.6;
+      g.add(ear);
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.028, 7, 6), eyeMat);
+      eye.position.set(0.48, 0.72, side * 0.22);
       g.add(eye);
     }
+    const boarTail = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.015, 0.28, 6), maneMat);
+    boarTail.position.set(-0.6, 0.66, 0);
+    boarTail.rotation.z = 0.65;
+    g.add(boarTail);
     for (const lx of [-0.28, 0.28]) {
       for (const lz of [-0.18, 0.18]) {
-        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.055, 0.46, 7), boarMat);
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.052, 0.46, 8), boarMat);
         leg.position.set(lx, 0.23, lz);
         leg.castShadow = true;
         g.add(leg);

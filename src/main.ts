@@ -303,6 +303,7 @@ class CozyFarmGame {
         supplyCrate: this.world.supplyCrateMesh,
         marketStand: this.world.marketStandMesh,
       });
+      this.wilderness.mountLoadedModels();
       this.garden.refreshLoadedModels();
       this.animals.refreshLoadedModels();
       this.viewmodel.refreshLoadedModels();
