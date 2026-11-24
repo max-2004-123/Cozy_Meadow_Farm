@@ -61,8 +61,17 @@ class CozyFarmGame {
   constructor() {
     const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
 
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    const isMobileDevice =
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0 ||
+      window.matchMedia('(pointer: coarse)').matches;
+
+    this.renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: !isMobileDevice,
+      powerPreference: 'high-performance',
+    });
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobileDevice ? 1.25 : 1.5));
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -231,6 +240,7 @@ class CozyFarmGame {
       },
     });
     this.ui.syncSensitivity(this.player.sensitivityMultiplier);
+    this.ui.updateVfxButton(this.postEffects.enabled);
 
     const handlePrimaryAction = () => {
       this.sound.init();

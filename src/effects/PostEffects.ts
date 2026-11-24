@@ -89,9 +89,18 @@ export class PostEffects {
     const size = new THREE.Vector2();
     renderer.getSize(size);
 
+    const isMobile =
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0 ||
+      window.matchMedia('(pointer: coarse)').matches;
+
     this.composer = new EffectComposer(renderer);
-    this.composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.composer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.0 : 1.5));
     this.composer.setSize(size.x, size.y);
+    // Default off on mobile touch devices for silky 60fps (can still toggle ON in ⚙️ menu!)
+    if (isMobile) {
+      this.enabled = false;
+    }
 
     const renderPass = new RenderPass(scene, camera);
     this.composer.addPass(renderPass);

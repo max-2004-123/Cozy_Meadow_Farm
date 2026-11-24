@@ -288,33 +288,39 @@ body,
 
 /* ==================== CENTER CROSSHAIR & INTERACTION CARD ==================== */
 .hud-center {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  pointer-events: none;
 }
 
 .crosshair {
+  position: fixed;
+  left: 50%;
+  top: 50%;
   width: 10px;
   height: 10px;
+  flex-shrink: 0;
   border-radius: 50%;
-  background: rgba(255, 252, 240, 0.92);
-  border: 2px solid rgba(74, 51, 34, 0.72);
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
-  transition: transform 0.14s ease, border-color 0.14s ease, background 0.14s ease;
+  background: rgba(255, 252, 240, 0.94);
+  border: 2px solid rgba(74, 51, 34, 0.78);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.75);
+  transform: translate3d(-50%, -50%, 0);
+  will-change: transform;
+  z-index: 12;
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
 }
 
 .crosshair.active {
-  transform: scale(1.55);
-  background: rgba(255, 238, 150, 0.95);
-  border-color: #6b4423;
+  transform: translate3d(-50%, -50%, 0) scale(1.42);
+  background: #ffe580;
+  border-color: #7a4f2b;
 }
 
 .interact-card {
-  position: absolute;
+  position: fixed;
+  left: 50%;
   top: calc(50% + 26px);
+  transform: translateX(-50%);
   min-width: 268px;
   max-width: 340px;
   background: rgba(255, 250, 239, 0.95);
@@ -331,11 +337,11 @@ body,
 @keyframes cardPop {
   from {
     opacity: 0;
-    transform: translateY(5px) scale(0.97);
+    transform: translate(-50%, 5px) scale(0.97);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate(-50%, 0) scale(1);
   }
 }
 
@@ -1137,6 +1143,15 @@ body.touch-mode .controls-strip {
 }
 
 @media (max-width: 900px), (pointer: coarse) {
+  /* Disable heavy backdrop-filter blur over 60fps WebGL on mobile to prevent stutters & crosshair tearing! */
+  .pill-card,
+  .parchment-card,
+  .joystick-ring,
+  .mobile-btn {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
   .hud-top-left {
     top: max(10px, env(safe-area-inset-top));
     left: max(10px, env(safe-area-inset-left));
@@ -1205,8 +1220,8 @@ body.touch-mode .controls-strip {
   }
 
   .mobile-joystick {
-    width: 112px;
-    height: 112px;
+    width: 132px;
+    height: 132px;
     bottom: calc(82px + env(safe-area-inset-bottom));
   }
 
