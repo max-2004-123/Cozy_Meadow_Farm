@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Sunnybrook Farm — Cozy 3D Countryside</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -33,6 +33,7 @@
               <button id="btn-speed" class="icon-btn" title="Toggle Time Speed (T)">1×</button>
               <button id="btn-sound" class="icon-btn" title="Toggle Sound (M)">🔊</button>
               <button id="btn-bag" class="icon-btn" title="Open Farm Bag (I)">🎒</button>
+              <button id="btn-touch" class="icon-btn" title="Toggle Touch Controls (Mobile)">📱</button>
               <button id="btn-menu" class="icon-btn" title="Menu & Time Settings (Esc / P)">⚙️</button>
             </div>
           </div>
@@ -109,6 +110,29 @@
 
         <!-- Toast Notifications -->
         <div id="toast-container" class="toast-container"></div>
+
+        <!-- Mobile Touch Controls (auto-shown on touchscreens, toggleable via 📱 button) -->
+        <div id="mobile-controls" class="mobile-controls hidden">
+          <div id="mobile-joystick" class="mobile-joystick" aria-label="Move Joystick">
+            <div class="joystick-ring"></div>
+            <div id="mobile-joystick-knob" class="joystick-knob"></div>
+          </div>
+
+          <div class="mobile-actions">
+            <button id="btn-m-sprint" class="mobile-btn mobile-btn-small" type="button" aria-label="Sprint or Turbo">
+              <span class="m-ico">⚡</span>
+              <span class="m-lbl">Sprint</span>
+            </button>
+            <button id="btn-m-jump" class="mobile-btn mobile-btn-med" type="button" aria-label="Jump or Horn">
+              <span class="m-ico">⬆️</span>
+              <span class="m-lbl">Jump</span>
+            </button>
+            <button id="btn-m-interact" class="mobile-btn mobile-btn-primary" type="button" aria-label="Interact">
+              <span class="m-ico">✋</span>
+              <span class="m-lbl">Action</span>
+            </button>
+          </div>
+        </div>
 
         <!-- Bottom: Harvest Pouch Summary + 9-Slot Wooden Hotbar -->
         <div class="hud-bottom">

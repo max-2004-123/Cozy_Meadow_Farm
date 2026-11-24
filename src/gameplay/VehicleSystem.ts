@@ -314,7 +314,8 @@ export class VehicleSystem {
     allowInput: boolean,
     isKeyDown: (code: string) => boolean,
     playerPos: THREE.Vector3,
-    dynamicColliders?: { x: number; z: number; radius: number }[]
+    dynamicColliders?: { x: number; z: number; radius: number }[],
+    virtualInput?: { moveX: number; moveY: number; sprint: boolean; brakeOrJumpHeld: boolean }
   ): number {
     if (this.hornCooldown > 0) this.hornCooldown = Math.max(0, this.hornCooldown - dt);
 
@@ -344,8 +345,14 @@ export class VehicleSystem {
       if (isKeyDown('KeyS') || isKeyDown('ArrowDown')) throttle -= 1;
       if (isKeyDown('KeyA') || isKeyDown('ArrowLeft')) steerInput += 1;
       if (isKeyDown('KeyD') || isKeyDown('ArrowRight')) steerInput -= 1;
-      boost = isKeyDown('ShiftLeft') || isKeyDown('ShiftRight');
-      brake = isKeyDown('Space');
+      if (virtualInput) {
+        throttle += virtualInput.moveY;
+        steerInput -= virtualInput.moveX;
+      }
+      throttle = THREE.MathUtils.clamp(throttle, -1, 1);
+      steerInput = THREE.MathUtils.clamp(steerInput, -1, 1);
+      boost = isKeyDown('ShiftLeft') || isKeyDown('ShiftRight') || Boolean(virtualInput?.sprint);
+      brake = isKeyDown('Space') || Boolean(virtualInput?.brakeOrJumpHeld);
 
       if (brake && this.hornCooldown <= 0) {
         this.sound.playHorn();

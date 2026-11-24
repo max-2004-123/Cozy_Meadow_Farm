@@ -24,6 +24,7 @@ import { InventorySystem } from './game/InventorySystem';
 import { TaskSystem } from './game/TaskSystem';
 import { SoundManager } from './audio/SoundManager';
 import { UIManager } from './ui/UIManager';
+import { MobileControls } from './ui/MobileControls';
 
 class CozyFarmGame {
   private renderer: THREE.WebGLRenderer;
@@ -51,6 +52,7 @@ class CozyFarmGame {
   private viewmodel: Viewmodel;
   private player: PlayerController;
   private ui: UIManager;
+  private mobileControls!: MobileControls;
 
   private worldInteractables: InteractableTarget[] = [];
   private clock = new THREE.Clock();
@@ -188,6 +190,7 @@ class CozyFarmGame {
         onDriveStateChange: (driving) => {
           this.player.externalDriving = driving;
           this.viewmodel.root.visible = !driving;
+          this.mobileControls?.setDrivingMode(driving);
           if (driving) {
             // Face cleanly out the front windshield (+Z local = heading + PI in Three.js -Z camera)
             this.player.setYaw(this.vehicle.heading + Math.PI);
@@ -228,6 +231,38 @@ class CozyFarmGame {
       },
     });
     this.ui.syncSensitivity(this.player.sensitivityMultiplier);
+
+    const handlePrimaryAction = () => {
+      this.sound.init();
+      if (this.vehicle.isDriving) {
+        this.vehicle.exitTruck(this.player.position);
+        return;
+      }
+      if (this.fishing.tryCastOrReel(this.player.position, this.camera)) {
+        return;
+      }
+      if (this.player.currentTarget) {
+        this.player.currentTarget.interact();
+        return;
+      }
+      if (this.hunting.tryShoot(this.camera)) {
+        return;
+      }
+    };
+
+    this.mobileControls = new MobileControls({
+      onInteract: () => {
+        if (!this.ui.isMenuVisible && !this.ui.isInventoryOpen) {
+          handlePrimaryAction();
+        }
+      },
+      onJumpPress: () => {
+        if (!this.ui.isMenuVisible && !this.ui.isInventoryOpen) {
+          this.sound.init();
+          this.player.triggerJump();
+        }
+      },
+    });
 
     // Sync HUD & Viewmodel on inventory/task updates
     this.inventory.onChange(() => {
@@ -492,18 +527,20 @@ class CozyFarmGame {
     const truckCol = this.vehicle.getDynamicCollider();
     if (truckCol) dynColliders.push(truckCol);
 
+    const vInput = this.mobileControls.enabled ? this.mobileControls.state : undefined;
     const truckTurnDelta = this.vehicle.update(
       dt,
       this.sky.nightFactor,
       allowMove,
       (code) => this.player.isKeyDown(code),
       this.player.position,
-      this.animals.getDynamicColliders()
+      this.animals.getDynamicColliders(),
+      vInput
     );
     if (truckTurnDelta !== 0) {
       this.player.setYaw(this.player.yaw + truckTurnDelta);
     }
-    this.player.update(dt, this.elapsed, allowMove, allInteractables, dynColliders);
+    this.player.update(dt, this.elapsed, allowMove, allInteractables, dynColliders, vInput);
     this.viewmodel.update(dt, this.elapsed, this.player.moveSpeedFactor);
 
     // Highlight hovered garden plot & show center interaction card (prefer Driving / Fishing HUD!)

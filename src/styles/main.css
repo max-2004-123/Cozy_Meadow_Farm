@@ -38,6 +38,7 @@ body,
   width: 100%;
   height: 100%;
   cursor: crosshair;
+  touch-action: none;
 }
 
 .hidden {
@@ -1008,5 +1009,208 @@ kbd {
   }
   .inv-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+/* ==================== MOBILE TOUCH CONTROLS & RESPONSIVE LAYOUT ==================== */
+.icon-btn.active-touch {
+  background: #ffe8a8;
+  border-color: var(--wood-dark);
+}
+
+.mobile-controls {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 15;
+}
+
+.mobile-joystick {
+  position: absolute;
+  left: max(18px, env(safe-area-inset-left));
+  bottom: calc(96px + env(safe-area-inset-bottom));
+  width: 124px;
+  height: 124px;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.joystick-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(255, 249, 238, 0.34);
+  border: 3px solid rgba(197, 145, 91, 0.78);
+  box-shadow: 0 6px 20px rgba(74, 51, 34, 0.2), inset 0 0 18px rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(4px);
+}
+
+.joystick-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(145deg, #fffdf7, #efd4a6);
+  border: 3px solid var(--wood-dark);
+  box-shadow: 0 4px 12px rgba(74, 51, 34, 0.32);
+}
+
+.mobile-actions {
+  position: absolute;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: calc(96px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.mobile-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-radius: 50%;
+  border: 3px solid var(--wood-mid);
+  background: rgba(255, 249, 238, 0.88);
+  color: var(--ink);
+  font-family: 'Fredoka', sans-serif;
+  box-shadow: 0 6px 18px rgba(74, 51, 34, 0.24);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+  touch-action: none;
+  transition: transform 0.08s ease, background 0.15s ease;
+}
+
+.mobile-btn.pressed {
+  transform: scale(0.92);
+}
+
+.mobile-btn-primary {
+  width: 78px;
+  height: 78px;
+  background: linear-gradient(145deg, #ffe799, #f4c14e);
+  border-color: #9e6a1d;
+}
+
+.mobile-btn-med {
+  width: 62px;
+  height: 62px;
+  background: linear-gradient(145deg, #dcf3ff, #9dd7f7);
+  border-color: #3f84b0;
+}
+
+.mobile-btn-small {
+  width: 54px;
+  height: 54px;
+}
+
+.mobile-btn-small.active {
+  background: linear-gradient(145deg, #a6e69a, #68b85c);
+  border-color: var(--leaf-dark);
+  color: #ffffff;
+}
+
+.mobile-btn .m-ico {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.mobile-btn-small .m-ico {
+  font-size: 18px;
+}
+
+.mobile-btn .m-lbl {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+body.touch-mode .controls-strip {
+  display: none !important;
+}
+
+@media (max-width: 900px), (pointer: coarse) {
+  .hud-top-left {
+    top: max(10px, env(safe-area-inset-top));
+    left: max(10px, env(safe-area-inset-left));
+  }
+
+  .time-pill {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+
+  .time-icon,
+  .time-icon svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .time-meta {
+    min-width: 78px;
+  }
+
+  .clock-label {
+    font-size: 15px;
+  }
+
+  .hud-top-right {
+    top: max(10px, env(safe-area-inset-top));
+    right: max(10px, env(safe-area-inset-right));
+    max-width: 190px;
+  }
+
+  .task-card {
+    padding: 8px 10px;
+  }
+
+  .task-hint {
+    display: none;
+  }
+
+  .hud-bottom {
+    bottom: max(8px, env(safe-area-inset-bottom));
+    width: 100%;
+    padding: 0 6px;
+  }
+
+  .hotbar {
+    gap: 4px;
+    padding: 5px 6px;
+    max-width: 98vw;
+    overflow-x: auto;
+  }
+
+  .hotbar-slot {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+
+  .hotbar-slot .slot-icon svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .interact-card {
+    max-width: 86vw;
+    padding: 10px 12px;
+  }
+
+  .mobile-joystick {
+    width: 112px;
+    height: 112px;
+    bottom: calc(82px + env(safe-area-inset-bottom));
+  }
+
+  .mobile-actions {
+    bottom: calc(82px + env(safe-area-inset-bottom));
   }
 }

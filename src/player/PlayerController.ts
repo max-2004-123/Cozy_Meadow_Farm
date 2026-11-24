@@ -107,6 +107,13 @@ export class PlayerController {
     this.camera.rotation.y = yaw;
   }
 
+  public triggerJump(): void {
+    if (this.allowGameplay && !this.externalDriving && this.isGrounded) {
+      this.velY = 5.4;
+      this.isGrounded = false;
+    }
+  }
+
   public requestLock(): void {
     this.sound.init();
     if (document.pointerLockElement === this.domElement) return;
@@ -145,7 +152,7 @@ export class PlayerController {
 
   private isInteractiveHudElement(target: EventTarget | null): boolean {
     if (!(target instanceof Element)) return false;
-    return Boolean(target.closest('button, input, .hotbar, .time-pill, .modal-card'));
+    return Boolean(target.closest('button, input, .hotbar, .time-pill, .modal-card, .mobile-controls'));
   }
 
   private bindEvents(): void {
@@ -230,11 +237,13 @@ export class PlayerController {
         return;
       }
 
-      if (e.button === 0 || e.button === 2) {
-        // Attempt pointer lock cleanly on left-click into the canvas; if blocked, drag-look handles it seamlessly
-        if (e.button === 0 && e.target === this.domElement) {
+      if (e.button === 0 || e.button === 2 || e.pointerType === 'touch') {
+        // Attempt pointer lock on desktop mouse left-click; on touchscreens use direct multi-touch look!
+        if (e.pointerType !== 'touch' && e.button === 0 && e.target === this.domElement) {
           this.requestLock();
         }
+        // Only capture look if not already tracking another look finger
+        if (this.activePointerId !== null) return;
         this.activePointerId = e.pointerId;
         this.pointerButton = e.button;
         this.dragStartX = e.clientX;
@@ -308,7 +317,8 @@ export class PlayerController {
     elapsed: number,
     allowMovement: boolean,
     interactables: InteractableTarget[],
-    dynamicColliders?: { x: number; z: number; radius: number }[]
+    dynamicColliders?: { x: number; z: number; radius: number }[],
+    virtualInput?: { moveX: number; moveY: number; sprint: boolean }
   ): void {
     this.allowGameplay = allowMovement;
 
@@ -329,6 +339,10 @@ export class PlayerController {
       if (this.keys.has('KeyS')) moveForward -= 1;
       if (this.keys.has('KeyD')) moveRight += 1;
       if (this.keys.has('KeyA')) moveRight -= 1;
+      if (virtualInput) {
+        moveForward += virtualInput.moveY;
+        moveRight += virtualInput.moveX;
+      }
 
       // Direct keyboard camera look (yaw + pitch)
       const keyLookSpeed = 1.9 * Math.max(0.55, Math.min(1.5, this.sensitivityMultiplier));
@@ -345,7 +359,10 @@ export class PlayerController {
     }
 
     const inputLen = Math.hypot(moveForward, moveRight);
-    this.isSprinting = allowMovement && (this.keys.has('ShiftLeft') || this.keys.has('ShiftRight')) && inputLen > 0;
+    this.isSprinting =
+      allowMovement &&
+      (this.keys.has('ShiftLeft') || this.keys.has('ShiftRight') || Boolean(virtualInput?.sprint)) &&
+      inputLen > 0;
     const baseSpeed = this.isSprinting ? 7.4 : 4.65;
 
     if (inputLen > 0) {
