@@ -57,6 +57,10 @@ export class WildernessExpansion {
   public lakeFishingSpot!: THREE.Object3D;
   public archeryTargets: ArcheryTargetSpot[] = [];
 
+  private lakeZone = new THREE.Group();
+  private westForestZone = new THREE.Group();
+  private eastMeadowZone = new THREE.Group();
+
   private lakeWaterMat?: THREE.ShaderMaterial;
   private fishList: SwimmingFish[] = [];
   private fireFlames: THREE.Mesh[] = [];
@@ -68,6 +72,7 @@ export class WildernessExpansion {
     private collisions: CollisionSystem,
     private sky: SkyAndLighting
   ) {
+    this.group.add(this.lakeZone, this.westForestZone, this.eastMeadowZone);
     this.buildEmeraldLake();
     this.buildWestPineForest();
     this.buildEastBirchMeadow();
@@ -294,7 +299,7 @@ export class WildernessExpansion {
       });
     }
 
-    this.group.add(lakeGroup);
+    this.lakeZone.add(lakeGroup);
 
     // Colliders keeping player out of deep lake water while letting them walk all the way onto the pier!
     this.collisions.addCircle(cx - 12.0, cz, 8.8);
@@ -333,7 +338,7 @@ export class WildernessExpansion {
         cone.receiveShadow = nearFarm;
         p.add(cone);
       }
-      this.group.add(p);
+      this.westForestZone.add(p);
       this.collisions.addCircle(x, z, 0.55 * s);
     };
 
@@ -359,11 +364,11 @@ export class WildernessExpansion {
       b.position.set(bx, bs * 0.35, bz);
       b.castShadow = true;
       b.receiveShadow = true;
-      this.group.add(b);
+      this.westForestZone.add(b);
       const cap = new THREE.Mesh(new THREE.SphereGeometry(bs * 0.85, 7, 5), mossMat);
       cap.scale.set(1.1, 0.32, 0.9);
       cap.position.set(bx, bs * 0.7, bz);
-      this.group.add(cap);
+      this.westForestZone.add(cap);
       this.collisions.addCircle(bx, bz, bs * 0.95);
     }
 
@@ -423,10 +428,10 @@ export class WildernessExpansion {
     this.collisions.addCircle(-47.4, -4.6, 1.7);
     this.collisions.addCircle(-44, -2, 0.95);
 
-    this.group.add(camp);
+    this.westForestZone.add(camp);
 
     // Archery Practice Target at Forest Camp (cleanly clear of boulders!)
-    this.addArcheryTarget(-36.5, -1.2, 0.55);
+    this.addArcheryTarget(-36.5, -1.2, 0.55, this.westForestZone);
   }
 
   private buildEastBirchMeadow(): void {
@@ -461,7 +466,7 @@ export class WildernessExpansion {
         puff.castShadow = nearFarm;
         t.add(puff);
       }
-      this.group.add(t);
+      this.eastMeadowZone.add(t);
       this.collisions.addCircle(x, z, 0.48 * s);
     });
 
@@ -483,15 +488,15 @@ export class WildernessExpansion {
       pillar.rotation.z = ((i % 2) - 0.5) * 0.08;
       pillar.castShadow = true;
       pillar.receiveShadow = true;
-      this.group.add(pillar);
+      this.eastMeadowZone.add(pillar);
       this.collisions.addCircle(sx, sz, 0.65);
     }
 
     // Second Archery Practice Target in the East Birch Meadow
-    this.addArcheryTarget(37.5, 2.5, -0.55);
+    this.addArcheryTarget(37.5, 2.5, -0.55, this.eastMeadowZone);
   }
 
-  private addArcheryTarget(x: number, z: number, rotY: number): void {
+  private addArcheryTarget(x: number, z: number, rotY: number, parent: THREE.Group): void {
     const g = new THREE.Group();
     g.position.set(x, 0, z);
     g.rotation.y = rotY;
@@ -526,7 +531,7 @@ export class WildernessExpansion {
       g.add(r);
     }
 
-    this.group.add(g);
+    parent.add(g);
     this.collisions.addCircle(x, z, 0.65);
     this.archeryTargets.push({
       center: new THREE.Vector3(x, 1.32, z),
@@ -560,33 +565,48 @@ export class WildernessExpansion {
     addSign(-2.4, -31.0, 0.2, 'EMERALD LAKE', 'North Pier • Fishing');
   }
 
-  public update(dt: number, elapsed: number, nightFactor: number): void {
-    if (this.lakeWaterMat) {
-      this.lakeWaterMat.uniforms.uTime.value = elapsed;
-      this.lakeWaterMat.uniforms.uNightFactor.value = nightFactor;
-      this.lakeWaterMat.uniforms.uSunColor.value.copy(this.sky.currentSunColor);
+  public update(dt: number, elapsed: number, nightFactor: number, playerPos: THREE.Vector3): void {
+    // Spatial Zone Culling: only render & animate wilderness zones near the player's region!
+    const showLake = playerPos.z < 12;
+    const showWest = playerPos.x < 12;
+    const showEast = playerPos.x > -12;
+
+    this.lakeZone.visible = showLake;
+    this.westForestZone.visible = showWest;
+    this.eastMeadowZone.visible = showEast;
+
+    if (showLake) {
+      if (this.lakeWaterMat) {
+        this.lakeWaterMat.uniforms.uTime.value = elapsed;
+        this.lakeWaterMat.uniforms.uNightFactor.value = nightFactor;
+        this.lakeWaterMat.uniforms.uSunColor.value.copy(this.sky.currentSunColor);
+      }
+
+      // Swimming fish in Emerald Lake
+      for (const f of this.fishList) {
+        f.angle += f.speed * dt;
+        const x = f.centerX + Math.cos(f.angle) * f.rx;
+        const z = f.centerZ + Math.sin(f.angle) * f.rz;
+        const dx = -Math.sin(f.angle) * f.rx;
+        const dz = Math.cos(f.angle) * f.rz;
+        f.group.position.set(x, 0.08 + Math.sin(elapsed * 2.5 + f.angle) * 0.02, z);
+        f.group.rotation.y = Math.atan2(-dz, dx);
+        f.tail.rotation.y = Math.sin(elapsed * 11.0 + f.angle) * 0.42;
+      }
     }
 
-    // Swimming fish in Emerald Lake
-    for (const f of this.fishList) {
-      f.angle += f.speed * dt;
-      const x = f.centerX + Math.cos(f.angle) * f.rx;
-      const z = f.centerZ + Math.sin(f.angle) * f.rz;
-      const dx = -Math.sin(f.angle) * f.rx;
-      const dz = Math.cos(f.angle) * f.rz;
-      f.group.position.set(x, 0.08 + Math.sin(elapsed * 2.5 + f.angle) * 0.02, z);
-      f.group.rotation.y = Math.atan2(-dz, dx);
-      f.tail.rotation.y = Math.sin(elapsed * 11.0 + f.angle) * 0.42;
-    }
-
-    // Crackling hunter campfire flicker
-    for (let i = 0; i < this.fireFlames.length; i++) {
-      const fl = this.fireFlames[i];
-      fl.scale.y = 0.85 + Math.sin(elapsed * 14 + i * 2.1) * 0.24;
-      fl.scale.x = 0.9 + Math.cos(elapsed * 11 + i) * 0.12;
-    }
-    if (this.campfireLight) {
-      this.campfireLight.intensity = 1.6 + nightFactor * 2.2 + Math.sin(elapsed * 13) * 0.35;
+    // Crackling hunter campfire flicker (only when West Forest is active)
+    if (showWest) {
+      for (let i = 0; i < this.fireFlames.length; i++) {
+        const fl = this.fireFlames[i];
+        fl.scale.y = 0.85 + Math.sin(elapsed * 14 + i * 2.1) * 0.24;
+        fl.scale.x = 0.9 + Math.cos(elapsed * 11 + i) * 0.12;
+      }
+      if (this.campfireLight) {
+        this.campfireLight.intensity = 1.6 + nightFactor * 2.2 + Math.sin(elapsed * 13) * 0.35;
+      }
+    } else if (this.campfireLight) {
+      this.campfireLight.intensity = 0;
     }
   }
 }

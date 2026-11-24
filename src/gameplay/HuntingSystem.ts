@@ -314,8 +314,15 @@ export class HuntingSystem {
         continue;
       }
 
-      // Gently trot away if player gets very close
+      // Distance Culling: hide & pause wild animals far outside the player's view range (> 68m)
       const distPlayer = a.group.position.distanceTo(playerPos);
+      if (distPlayer > 68) {
+        a.group.visible = false;
+        continue;
+      }
+      a.group.visible = true;
+
+      // Gently trot away if player gets very close
       if (distPlayer < 7.5) {
         const away = a.group.position.clone().sub(playerPos).setY(0);
         if (away.lengthSq() > 0.01) {

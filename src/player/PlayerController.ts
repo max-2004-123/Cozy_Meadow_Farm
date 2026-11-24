@@ -404,9 +404,19 @@ export class PlayerController {
 
     const objects: THREE.Object3D[] = [];
     const map = new Map<THREE.Object3D, InteractableTarget>();
+    const tmpPos = new THREE.Vector3();
     for (const target of interactables) {
+      // Fast squared-distance pre-filter: skip raycasting anything far from the player!
+      if (!target.object.visible) continue;
+      target.object.getWorldPosition(tmpPos);
+      const maxCheck = target.maxDistance + 3.2;
+      if (tmpPos.distanceToSquared(this.position) > maxCheck * maxCheck) continue;
       objects.push(target.object);
       map.set(target.object, target);
+    }
+    if (objects.length === 0) {
+      this.currentTarget = null;
+      return;
     }
 
     const hits = this.raycaster.intersectObjects(objects, true);

@@ -58,7 +58,7 @@ class CozyFarmGame {
     const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
 
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -68,7 +68,7 @@ class CozyFarmGame {
 
     this.scene = new THREE.Scene();
 
-    this.camera = new THREE.PerspectiveCamera(64, window.innerWidth / window.innerHeight, 0.18, 260);
+    this.camera = new THREE.PerspectiveCamera(64, window.innerWidth / window.innerHeight, 0.18, 210);
     this.scene.add(this.camera);
 
     // Core world & dreamy post-processing lighting systems
@@ -438,8 +438,8 @@ class CozyFarmGame {
     this.world.update(dt, this.elapsed, this.sky.nightFactor);
     this.worldEnhancer.update(this.elapsed);
     this.cozyDetails.update(this.elapsed, this.sky.nightFactor);
-    this.wilderness.update(dt, this.elapsed, this.sky.nightFactor);
-    this.interiors.update(dt, this.elapsed);
+    this.wilderness.update(dt, this.elapsed, this.sky.nightFactor, this.player.position);
+    this.interiors.update(dt, this.elapsed, this.player.position);
     this.garden.update(dt, this.elapsed);
     this.animals.update(dt, this.elapsed, this.player.position);
     this.fishing.update(dt, this.elapsed, this.player.position, this.camera);

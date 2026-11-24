@@ -50,6 +50,10 @@ export class BuildingInteriors {
   private builtCount = 0;
   private hearthFlames: THREE.Mesh[] = [];
   private hearthLight?: THREE.PointLight;
+  private houseCeilingLight?: THREE.PointLight;
+  private barnCeilingLight?: THREE.PointLight;
+  private houseInteriorRoot = new THREE.Group();
+  private barnInteriorRoot = new THREE.Group();
 
   constructor(
     private farmhouseGroup: THREE.Group,
@@ -173,20 +177,21 @@ export class BuildingInteriors {
     this.hearthLight = new THREE.PointLight('#ffaa55', 2.4, 14, 1.4);
     this.hearthLight.position.set(0.55, 1.25, 0);
     hearth.add(this.hearthLight);
-    this.farmhouseGroup.add(hearth);
+    this.houseInteriorRoot.add(hearth);
 
     // Warm Farmhouse ceiling lamp
-    const ceilingLight = new THREE.PointLight('#ffe0a8', 1.4, 14, 1.4);
-    ceilingLight.position.set(0.5, 3.9, 0);
-    this.farmhouseGroup.add(ceilingLight);
+    this.houseCeilingLight = new THREE.PointLight('#ffe0a8', 1.4, 14, 1.4);
+    this.houseCeilingLight.position.set(0.5, 3.9, 0);
+    this.houseInteriorRoot.add(this.houseCeilingLight);
+    this.farmhouseGroup.add(this.houseInteriorRoot);
   }
 
   private buildBarnInteriorBase(): void {
     const woodMat = new THREE.MeshStandardMaterial({ map: this.textures.woodWarm, roughness: 0.88 });
     // Cozy warm barn hanging ceiling light
-    const barnCeilingLight = new THREE.PointLight('#ffdca0', 1.7, 16, 1.4);
-    barnCeilingLight.position.set(0, 4.1, 0);
-    this.barnGroup.add(barnCeilingLight);
+    this.barnCeilingLight = new THREE.PointLight('#ffdca0', 1.7, 16, 1.4);
+    this.barnCeilingLight.position.set(0, 4.1, 0);
+    this.barnInteriorRoot.add(this.barnCeilingLight);
 
     // Warm glowing lantern globe hanging from central rafter
     const globe = new THREE.Mesh(
@@ -194,16 +199,17 @@ export class BuildingInteriors {
       new THREE.MeshStandardMaterial({ color: '#fff3c4', emissive: '#ffbd55', emissiveIntensity: 0.8 })
     );
     globe.position.set(0, 4.28, 0);
-    this.barnGroup.add(globe);
+    this.barnInteriorRoot.add(globe);
 
     // Rustic timber support posts along interior corners
     for (const sx of [-3.95, 3.95]) {
       for (const sz of [-3.05, 0, 3.05]) {
         const post = new THREE.Mesh(new THREE.BoxGeometry(0.24, 4.5, 0.24), woodMat);
         post.position.set(sx, 2.3, sz);
-        this.barnGroup.add(post);
+        this.barnInteriorRoot.add(post);
       }
     }
+    this.barnGroup.add(this.barnInteriorRoot);
   }
 
   private setupInteriorBuildSlots(): void {
@@ -366,7 +372,8 @@ export class BuildingInteriors {
       const accentMeshes = this.populateFurnitureMesh(builtGroup, s.kind);
       anchor.add(builtGroup);
 
-      s.parent.add(anchor);
+      const interiorParent = s.parent === this.farmhouseGroup ? this.houseInteriorRoot : this.barnInteriorRoot;
+      interiorParent.add(anchor);
 
       const slot: BuildSlot = {
         id: s.id,
@@ -656,7 +663,16 @@ export class BuildingInteriors {
     return accents;
   }
 
-  public update(dt: number, elapsed: number): void {
+  public update(dt: number, elapsed: number, playerPos: THREE.Vector3): void {
+    // Interior Culling: hide & pause interior furniture/lights when player is far from each building!
+    const nearHouse = Math.hypot(playerPos.x + 18.5, playerPos.z + 6.5) < 19.0;
+    const nearBarn = Math.hypot(playerPos.x - 18.5, playerPos.z + 7.2) < 19.0;
+
+    this.houseInteriorRoot.visible = nearHouse;
+    this.barnInteriorRoot.visible = nearBarn;
+    if (this.houseCeilingLight) this.houseCeilingLight.intensity = nearHouse ? 1.4 : 0;
+    if (this.barnCeilingLight) this.barnCeilingLight.intensity = nearBarn ? 1.7 : 0;
+
     // Smooth swinging Farmhouse & Red Barn doors!
     const targetHouseAngle = this.farmhouseOpen ? 1.82 : 0;
     this.farmhouseAngle = THREE.MathUtils.lerp(this.farmhouseAngle, targetHouseAngle, Math.min(1, dt * 7));
@@ -667,21 +683,27 @@ export class BuildingInteriors {
     this.barnDoorLeftPivot.rotation.y = -this.barnAngle;
     this.barnDoorRightPivot.rotation.y = this.barnAngle;
 
-    // Gentle pulse on unbuilt golden interior blueprint pads
-    for (let i = 0; i < this.slots.length; i++) {
-      const s = this.slots[i];
-      if (!s.built) {
-        s.blueprintGroup.position.y = Math.sin(elapsed * 2.8 + i) * 0.025;
+    // Gentle pulse on unbuilt golden interior blueprint pads (only when nearby!)
+    if (nearHouse || nearBarn) {
+      for (let i = 0; i < this.slots.length; i++) {
+        const s = this.slots[i];
+        if (!s.built) {
+          s.blueprintGroup.position.y = Math.sin(elapsed * 2.8 + i) * 0.025;
+        }
       }
     }
 
-    // Crackling Farmhouse hearth flames
-    for (let i = 0; i < this.hearthFlames.length; i++) {
-      const f = this.hearthFlames[i];
-      f.scale.y = 0.85 + Math.sin(elapsed * 15 + i * 2.1) * 0.24;
-    }
-    if (this.hearthLight) {
-      this.hearthLight.intensity = 2.2 + Math.sin(elapsed * 12) * 0.3;
+    // Crackling Farmhouse hearth flames (only when near Farmhouse!)
+    if (nearHouse) {
+      for (let i = 0; i < this.hearthFlames.length; i++) {
+        const f = this.hearthFlames[i];
+        f.scale.y = 0.85 + Math.sin(elapsed * 15 + i * 2.1) * 0.24;
+      }
+      if (this.hearthLight) {
+        this.hearthLight.intensity = 2.2 + Math.sin(elapsed * 12) * 0.3;
+      }
+    } else if (this.hearthLight) {
+      this.hearthLight.intensity = 0;
     }
   }
 }
